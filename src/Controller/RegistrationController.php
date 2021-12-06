@@ -84,13 +84,13 @@ class RegistrationController extends AbstractController
     {
         // validate email confirmation link, sets User::isVerified=true and persists
         $decodedToken = $manager->parse($request->get("token"));
-        $expirationTime = date('Y-m-d H:i:s', $decodedToken['exp']+3600);
-        if(date('Y-m-d H:i:s', strtotime('1 hour')) > $expirationTime){
+        $expirationTime = date('Y-m-d H:i:s', $decodedToken['exp'] + 3600);
+        if (date('Y-m-d H:i:s', strtotime('1 hour')) > $expirationTime) {
             return $this->json("Expired token, please request a new email validation link!");
         }
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email'=>$decodedToken["username"]]);
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
         $em = $this->getDoctrine()->getManager();
-        if($user->isVerified() === true) {
+        if ($user->isVerified() === true) {
             return $this->json("The user has already been verified!");
         }
         $user->setIsVerified(true);
