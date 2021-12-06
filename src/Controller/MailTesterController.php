@@ -3,19 +3,19 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 
 class MailTesterController extends AbstractController
 {
     /**
-     * @Route("/mail/tester", name="mail_tester")
+     * @Route("/api/mail", name="mail_tester")
      * @throws \Symfony\Component\Mailer\Exception\TransportExceptionInterface
      */
-    public function index(MailerInterface $mailer): void
+    public function index(MailerInterface $mailer): JsonResponse
     {
-        $email = (new Email())
+        /*$email = (new Email())
             ->from('simonpankovski@gmail.com')
             ->to('simonp9999@gmail.com')
             //->cc('cc@example.com')
@@ -25,6 +25,7 @@ class MailTesterController extends AbstractController
             ->subject('Time for Symfony Mailer!')
             ->text('Sending emails is fun again!')
             ->html('<p>See Twig integration for better HTML integration!</p>');
-        $mailer->send($email);
+        $mailer->send($email);*/
+        return $this->json("Sent");
     }
 }

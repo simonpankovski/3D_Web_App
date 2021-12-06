@@ -138,6 +138,8 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/sebastian/object-reflector" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/twig/twig" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/sendgrid-mailer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/lexik/jwt-authentication-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfonycasts/verify-email-bundle" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
