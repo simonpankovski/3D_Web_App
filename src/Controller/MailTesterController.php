@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Repository\UserRepository;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -14,9 +16,10 @@ class MailTesterController extends AbstractController
      * @Route("/api/mail", name="mail_tester")
      * @throws \Symfony\Component\Mailer\Exception\TransportExceptionInterface
      */
-    public function index(MailerInterface $mailer, UserRepository $userRepository): JsonResponse
+    public function index(Request $request, MailerInterface $mailer, UserRepository $userRepository, JWTTokenManagerInterface $JWTManager): JsonResponse
     {
-        dd($userRepository->findAll());
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        dd($JWTManager->parse($token));
         /*$email = (new Email())
             ->from('simonpankovski@gmail.com')
             ->to('simonp9999@gmail.com')
