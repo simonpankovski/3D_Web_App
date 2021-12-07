@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\UserRepository;
+use Google\Cloud\Storage\StorageClient;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,8 +19,15 @@ class MailTesterController extends AbstractController
      */
     public function index(Request $request, MailerInterface $mailer, UserRepository $userRepository, JWTTokenManagerInterface $JWTManager): JsonResponse
     {
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        dd($JWTManager->parse($token));
+        $decodedJson = json_decode(file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")), true);
+        //$token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $storage = new StorageClient([
+                                         'keyFile' => $decodedJson
+                                     ]);
+        $bucket = $storage->bucket('polybase-files');
+        $object = $bucket->object('57-couch-obj.rar');
+        $object->downloadToFile('57-couch-obj.rar');
+
         /*$email = (new Email())
             ->from('simonpankovski@gmail.com')
             ->to('simonp9999@gmail.com')

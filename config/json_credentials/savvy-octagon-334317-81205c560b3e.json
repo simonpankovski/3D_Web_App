@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "savvy-octagon-334317",
+  "private_key_id": "81205c560b3e88c211ca28fb0117e51271046699",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3GUhPwM3/XWoq\n/YSnXPfZkPKsHCFLrSg+o0xHl3RAKC8jzTXT//KxgDwgGoisluuf6dac5268rRGm\nwsWCIS30QJNMneHeHSiIHBJsiTJJAjNHGEdxBpjIqp3OXuEwxNS3tvOYHF6pcirY\nfAIuxk/dOC3vYDZX6fuyR8LkkWBNPdOUzybK3TVwx/nrMKyPEa6JsbfFUwv5Jl+Y\n+NIjEdh9Vr1XplqphYVOfQq3pJcLpfHyDm01QGliyxzOE24H5hCEhn9hdftro+c6\n+Zkm6BDVoL3jX0iwm7sTVVo6sXzJeWDn9tUH/FCaIPX0BRiMXNI3UNJBIqKR1CF/\nK+Ty+HKrAgMBAAECggEAH2zHbGi68kkmH5rDWbYrE7w86i0pycM+VQHR5beozBoZ\nfRuLUYdsL+rCZwAm1PhSGHAZ1XQjHV7W2Lg1DdCEApfSsCOo0GZQvouS3e3uI3mt\nM1aHbG6lakteKj0+iRA/MgjEZib4WDyv/dfKyBxhOKabu6nXqd8Ow9ptKK2Kyba4\nTPUWFmjGZiVcDsdwaiiQZtkCSems7csDjQrDKUFc0fQ9UpUx3VGt2kuoOl69bE3A\nppZVWTkJUYaIiAl/3z3TTztMUNBvQgW7ukyGwAONBRVNjDgiCN9IX57KVbLdBx61\nFL2i2xN9j2E/b0I6vef66RrprqGydzaGld2kkof5AQKBgQDnpsaGIoNoWHvwrAal\nf31p2taXRBhoc+4B8C6/5FmdhI9WtQpsrWDiMclYGJBvhMhGIz8Hzibgw6daxbX9\nK6wyofVGaRpQ42Y8/vxnl+6KheQT9ltAFmeApIf9fxAQEFIr+92+HZh/OlTtJePT\nOnABJjy2CaBt/bO1UxPmCG2COQKBgQDKWA/XYhhTff4OnWZ+1L7/gdnTmhVW4M5d\n1xNC8zyk3XF6JOs2wil7JZbfRm5JgYNuKsg0ncJxcIgJEz5Oy4cCXgwLLN7Cgqo7\n5SHzALhonldeguryXbl66bkbcn/cSowp607PtRQ8XrtPcIEuAtd+vkh8Ittl5pW6\n6Vt9oz9MAwKBgQDDJwn6OJsxzdFkGNhkljnmcpjzyEczv+6TrW8E8+/XNrS23D/S\n/GExTbYMxGzxthAunkTcY3z3P3z+iK9fgGpKIY0La0HjQR+BZWLoNuObyV4yvwly\nvS0m//Ucxu2WStme+kl9f1tYW6DuRExhR8rR/Q+KYCPKZb/+kuWhlhoDaQKBgQCy\ncNSPibeQMcURmGdiJDXH1/iD7hcxhZEYGmqnGSB697pyEArKQJIaQrz5bAAonKmO\nRvZFyHZIWgftkOXa0Qvf35ZZaJmOCXMc3OWCijkWMcU02NlfIZ5HscQHW4M8fxV6\nhkP7UmJlFtmypbGWJPVrlV0Q9CBtjdqvecmwU32nhwKBgQCf0ORe3dXAC7l+88/H\nwBR8HOAJpwouwTLCk3JQP2S0AKZzXvTFyJjU3LmcKAyCUhke68ZTpwodooI4946G\n45Lv8pWXUGZxGlEIwfOFaO8zB4yWOqQh47clqATvuL030YsFcTgfFOwKIgplylQq\nx0wJQjjJfYlQEkHmNu1K5Ma8+Q==\n-----END PRIVATE KEY-----\n",
+  "client_email": "storage@savvy-octagon-334317.iam.gserviceaccount.com",
+  "client_id": "108380378873737073396",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/storage%40savvy-octagon-334317.iam.gserviceaccount.com"
+}
