@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Mailer\MailerInterface;
@@ -13,8 +14,9 @@ class MailTesterController extends AbstractController
      * @Route("/api/mail", name="mail_tester")
      * @throws \Symfony\Component\Mailer\Exception\TransportExceptionInterface
      */
-    public function index(MailerInterface $mailer): JsonResponse
+    public function index(MailerInterface $mailer, UserRepository $userRepository): JsonResponse
     {
+        dd($userRepository->findAll());
         /*$email = (new Email())
             ->from('simonpankovski@gmail.com')
             ->to('simonp9999@gmail.com')
