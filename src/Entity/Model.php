@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 
 /**
  * @ORM\Entity(repositoryClass=ModelRepository::class)
+ * @ORM\HasLifecycleCallbacks
  */
 class Model
 {
@@ -31,7 +32,7 @@ class Model
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $url;
+    private $extension;
 
     /**
      * @ManyToOne(targetEntity="User")
@@ -45,9 +46,19 @@ class Model
     private $users;
 
     /**
-     * @ORM\Column(type="smallint", options={"default" : 5})
+     * @ORM\Column(type="smallint", options={"default" : 0})
      */
-    private $rating;
+    private $rating = 0;
+
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $price = 0;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private $approved = false;
 
     public function __construct()
     {
@@ -71,14 +82,20 @@ class Model
         return $this;
     }
 
-    public function getUrl(): ?string
+    /**
+     * @return mixed
+     */
+    public function getExtension()
     {
-        return $this->url;
+        return $this->extension;
     }
 
-    public function setUrl(string $url): self
+    /**
+     * @param mixed $extension
+     */
+    public function setExtension($extension): self
     {
-        $this->url = $url;
+        $this->extension = $extension;
 
         return $this;
     }
@@ -138,4 +155,35 @@ class Model
         return $this;
     }
 
+    /**
+     * @return int
+     */
+    public function getPrice(): int
+    {
+        return $this->price;
+    }
+
+    /**
+     * @param int $price
+     */
+    public function setPrice(int $price): void
+    {
+        $this->price = $price;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isApproved(): bool
+    {
+        return $this->approved;
+    }
+
+    /**
+     * @param bool $approved
+     */
+    public function setApproved(bool $approved): void
+    {
+        $this->approved = $approved;
+    }
 }

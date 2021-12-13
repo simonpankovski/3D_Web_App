@@ -19,22 +19,16 @@ class ModelRepository extends ServiceEntityRepository
         parent::__construct($registry, Model::class);
     }
 
-    // /**
-    //  * @return Model[] Returns an array of Model objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findAllAndPaginate($index, $pageSize): array
     {
         return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
             ->orderBy('m.id', 'ASC')
-            ->setMaxResults(10)
+            ->setFirstResult($index)
+            ->setMaxResults($pageSize)
             ->getQuery()
             ->getResult()
         ;
     }
-    */
 
     /*
     public function findOneBySomeField($value): ?Model

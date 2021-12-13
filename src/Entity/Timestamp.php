@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\DateType;
 use Doctrine\ORM\Mapping as ORM;
 
 trait Timestamp
@@ -34,5 +33,37 @@ trait Timestamp
     {
         $time = new \DateTime("now");
         $this->updatedOn = $time;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCreatedOn()
+    {
+        return $this->createdOn;
+    }
+
+    /**
+     * @param mixed $createdOn
+     */
+    public function setCreatedOn($createdOn): void
+    {
+        $this->createdOn = $createdOn;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUpdatedOn()
+    {
+        return $this->updatedOn;
+    }
+
+    /**
+     * @param mixed $updatedOn
+     */
+    public function setUpdatedOn($updatedOn): void
+    {
+        $this->updatedOn = $updatedOn;
     }
 }
