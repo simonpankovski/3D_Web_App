@@ -60,9 +60,15 @@ class Model
      */
     private $approved = false;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Tag::class, mappedBy="models")
+     */
+    private $tags;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -185,5 +191,32 @@ class Model
     public function setApproved(bool $approved): void
     {
         $this->approved = $approved;
+    }
+
+    /**
+     * @return Collection|Tag[]
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags[] = $tag;
+            $tag->addModel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tags->removeElement($tag)) {
+            $tag->removeModel($this);
+        }
+
+        return $this;
     }
 }
