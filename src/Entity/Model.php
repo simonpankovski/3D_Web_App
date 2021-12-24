@@ -41,14 +41,9 @@ class Model
     private $owner;
 
     /**
-     * @ORM\ManyToMany(targetEntity=User::class, mappedBy="purchases")
+     * @ORM\OneToMany(targetEntity=Purchase::class, mappedBy="model")
      */
-    private $users;
-
-    /**
-     * @ORM\Column(type="smallint", options={"default" : 0})
-     */
-    private $rating = 0;
+    private $purchases;
 
     /**
      * @ORM\Column(type="integer", options={"default": 0})
@@ -67,7 +62,6 @@ class Model
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
         $this->tags = new ArrayCollection();
     }
 
@@ -107,33 +101,6 @@ class Model
     }
 
     /**
-     * @return Collection|User[]
-     */
-    public function getUsers(): Collection
-    {
-        return $this->users;
-    }
-
-    public function addUser(User $user): self
-    {
-        if (!$this->users->contains($user)) {
-            $this->users[] = $user;
-            $user->addPurchase($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        if ($this->users->removeElement($user)) {
-            $user->removePurchase($this);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return mixed
      */
     public function getOwner()
@@ -147,18 +114,6 @@ class Model
     public function setOwner($owner): void
     {
         $this->owner = $owner;
-    }
-
-    public function getRating(): ?int
-    {
-        return $this->rating;
-    }
-
-    public function setRating(int $rating): self
-    {
-        $this->rating = $rating;
-
-        return $this;
     }
 
     /**
@@ -218,5 +173,21 @@ class Model
         }
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPurchases(): array
+    {
+        return $this->purchases;
+    }
+
+    /**
+     * @param Purchase $purchase
+     */
+    public function addPurchase(Purchase $purchase): void
+    {
+        $this->purchases[] = $purchase;
     }
 }

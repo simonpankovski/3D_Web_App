@@ -32,7 +32,7 @@ class TokenAuthorizationSubscriber implements EventSubscriberInterface
         if ($controller instanceof HasAdminRole) {
             $token = preg_split("/ /", $event->getRequest()->headers->get("authorization"))[1];
             $decodedToken = $this->tokenManager->parse($token);
-            if (!in_array("ROLE_ADMIN", $decodedToken["roles"])) {
+            if (!in_array("ADMIN_ROLE", $decodedToken["roles"])) {
                 throw new AccessDeniedHttpException('This action needs a valid token!');
             }
         }

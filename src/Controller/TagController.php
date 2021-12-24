@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\{Entity\Tag, Repository\ModelRepository, Repository\TagRepository};
+use App\{Entity\Tag, Repository\ModelRepository};
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\{HttpFoundation\JsonResponse, HttpFoundation\Request, HttpFoundation\Response};

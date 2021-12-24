@@ -29,14 +29,9 @@ class ModelDTO
     private $ownerEmail;
 
     /**
-     * @Assert\Type(type="array")
+     * @Assert\NotNull
      */
-    private $userList;
-
-    /**
-     * @Assert\PositiveOrZero
-     */
-    private $rating;
+    private $purchases;
 
     /**
      * @Assert\PositiveOrZero
@@ -75,7 +70,7 @@ class ModelDTO
      * @param $name
      * @param $extension
      * @param $ownerEmail
-     * @param $rating
+     * @param $purchases
      * @param $price
      * @param $approved
      * @param $createdOn
@@ -87,7 +82,7 @@ class ModelDTO
         $name,
         $extension,
         $ownerEmail,
-        $rating,
+        $purchases,
         $price,
         $approved,
         $createdOn,
@@ -98,7 +93,7 @@ class ModelDTO
         $this->name = $name;
         $this->extension = $extension;
         $this->ownerEmail = $ownerEmail;
-        $this->rating = $rating;
+        $this->purchases = $purchases;
         $this->price = $price;
         $this->approved = $approved;
         $this->createdOn = $createdOn;
@@ -168,38 +163,6 @@ class ModelDTO
     public function setOwnerEmail($ownerEmail): void
     {
         $this->ownerEmail = $ownerEmail;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getUserList()
-    {
-        return $this->userList;
-    }
-
-    /**
-     * @param array $userList
-     */
-    public function setUserList(array $userList): void
-    {
-        $this->userList = $userList;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRating()
-    {
-        return $this->rating;
-    }
-
-    /**
-     * @param mixed $rating
-     */
-    public function setRating($rating): void
-    {
-        $this->rating = $rating;
     }
 
     /**
@@ -296,5 +259,21 @@ class ModelDTO
     public function setThumbnailLinks(array $thumbnailLinks): void
     {
         $this->thumbnailLinks = $thumbnailLinks;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPurchases()
+    {
+        return $this->purchases;
+    }
+
+    /**
+     * @param mixed $purchases
+     */
+    public function setPurchases($purchases): void
+    {
+        $this->purchases = $purchases;
     }
 }

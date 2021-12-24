@@ -95,6 +95,7 @@ class ModelController extends AbstractController
         $files = $request->files->get("format");
         $zip = new ZipArchive();
         $file = "";
+        $modelRepo = $this->entityManager->getRepository(Model::class);
         if (sizeof($files) === 1) {
             if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
                 return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!']);
@@ -121,6 +122,10 @@ class ModelController extends AbstractController
         );
 
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
+        $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere('m.approved = false')->setParameter('owner', 71)->getQuery()->getSingleScalarResult();
+        if($query > 0) {
+            return $this->json(['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!']);
+        }
         $requestBody = $request->request->all();
         $tags = array_key_exists("tags", $requestBody) ? $requestBody["tags"] : null;
         $tags = $this->entityManager->getRepository(Tag::class)->findBy(['name' => json_decode($tags, true)]);

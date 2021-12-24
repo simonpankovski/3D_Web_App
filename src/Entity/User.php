@@ -48,7 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $password;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Model::class, inversedBy="users")
+     * @ORM\OneToMany(targetEntity=Purchase::class, mappedBy="user")
      */
     private $purchases;
 
@@ -160,26 +160,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection|Model[]
+     * @return ArrayCollection
      */
-    public function getPurchases(): Collection
+    public function getPurchases(): ArrayCollection
     {
         return $this->purchases;
     }
 
-    public function addPurchase(Model $purchase): self
+    /**
+     * @param ArrayCollection $purchases
+     */
+    public function setPurchases(ArrayCollection $purchases): void
     {
-        if (!$this->purchases->contains($purchase)) {
-            $this->purchases[] = $purchase;
-        }
-
-        return $this;
-    }
-
-    public function removePurchase(Model $purchase): self
-    {
-        $this->purchases->removeElement($purchase);
-
-        return $this;
+        $this->purchases = $purchases;
     }
 }
