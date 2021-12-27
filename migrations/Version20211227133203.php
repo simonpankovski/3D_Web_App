@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20211223134731 extends AbstractMigration
+final class Version20211227133203 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,6 +20,9 @@ final class Version20211223134731 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE SEQUENCE model_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
+        $this->addSql('CREATE SEQUENCE tag_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
+        $this->addSql('CREATE SEQUENCE "user_id_seq" INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE TABLE model (id INT NOT NULL, owner_id INT DEFAULT NULL, name VARCHAR(255) NOT NULL, extension VARCHAR(255) NOT NULL, price INT DEFAULT 0 NOT NULL, approved BOOLEAN DEFAULT \'false\' NOT NULL, created_on TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_on TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_D79572D97E3C61F9 ON model (owner_id)');
         $this->addSql('CREATE TABLE purchase (user_id INT NOT NULL, model_id INT NOT NULL, rating DOUBLE PRECISION NOT NULL, created_on TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_on TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(user_id, model_id))');
@@ -48,6 +51,9 @@ final class Version20211223134731 extends AbstractMigration
         $this->addSql('ALTER TABLE tag_model DROP CONSTRAINT FK_F5796BDFBAD26311');
         $this->addSql('ALTER TABLE model DROP CONSTRAINT FK_D79572D97E3C61F9');
         $this->addSql('ALTER TABLE purchase DROP CONSTRAINT FK_6117D13BA76ED395');
+        $this->addSql('DROP SEQUENCE model_id_seq CASCADE');
+        $this->addSql('DROP SEQUENCE tag_id_seq CASCADE');
+        $this->addSql('DROP SEQUENCE "user_id_seq" CASCADE');
         $this->addSql('DROP TABLE model');
         $this->addSql('DROP TABLE purchase');
         $this->addSql('DROP TABLE tag');
