@@ -1,1 +1,1 @@
-web: heroku-php-apache2 public/ -i custom_php.ini
+web: heroku-php-apache2 public/
