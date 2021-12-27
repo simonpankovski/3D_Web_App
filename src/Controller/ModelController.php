@@ -122,7 +122,7 @@ class ModelController extends AbstractController
         );
 
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
-        $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere('m.approved = false')->setParameter('owner', 71)->getQuery()->getSingleScalarResult();
+        $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere('m.approved = false')->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
         if($query > 0) {
             return $this->json(['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!']);
         }
