@@ -32,7 +32,7 @@ class RegistrationController extends AbstractController
     }
 
     /**
-     * @Route("/register", name="app_register")
+     * @Route("/register", name="app_register", methods={"POST"})
      * @throws \Symfony\Component\Mailer\Exception\TransportExceptionInterface
      */
     public function register(
@@ -43,38 +43,30 @@ class RegistrationController extends AbstractController
         MailerInterface $mailer
     ): Response {
         $user = new User();
-        $form = $this->createForm(RegistrationFormType::class, $user);
-        $form->handleRequest($request);
+        $formData = json_decode($request->getContent(), true);
+        dd($formData);
+        $user->setPassword(
+            $userPasswordHasher->hashPassword(
+                $user,
+                $formData['password']
+            )
+        )->setIsVerified(false)->setRoles(['USER_ROLE'])->setEmail($formData['username']);
+        dd($user);
+        $entityManager->persist($user);
+        $entityManager->flush();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // encode the plain password
-            $user->setPassword(
-                $userPasswordHasher->hashPassword(
-                    $user,
-                    $form->get('plainPassword')->getData()
-                )
-            )->setIsVerified(false)->setRoles(['USER_ROLE']);
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            // generate a signed url and email it to the user
-            $token = $JWTManager->create($user);
-            $email = (new TemplatedEmail())
-                ->from(new Address('simonpankovski@gmail.com', '3D Web App Bot'))
-                ->to($user->getEmail())
-                ->subject('Please Confirm your Email')
-                ->htmlTemplate('registration/confirmation_email.html.twig')
-                ->context([
-                              'token' => $token
-                          ]);
-            $mailer->send($email);
-
-            return $this->json($token);
-        }
-
-        return $this->render('registration/register.html.twig', [
-            'registrationForm' => $form->createView(),
-        ]);
+        // generate a signed url and email it to the user
+        $token = $JWTManager->create($user);
+        $email = (new TemplatedEmail())
+            ->from(new Address('simonpankovski@gmail.com', '3D Web App Bot'))
+            ->to($user->getEmail())
+            ->subject('Please Confirm your Email')
+            ->htmlTemplate('registration/confirmation_email.html.twig')
+            ->context([
+                          'token' => $token
+                      ]);
+        $mailer->send($email);
+        return $this->json($token);
     }
 
     /**
