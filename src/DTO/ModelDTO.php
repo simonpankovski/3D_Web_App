@@ -19,9 +19,9 @@ class ModelDTO
     private $name;
 
     /**
-     * @Assert\Type(type="string")
+     * @Assert\Type(type="array")
      */
-    private $extension;
+    private $extensions;
 
     /**
      * @Assert\Email
@@ -68,7 +68,7 @@ class ModelDTO
     /**
      * @param $id
      * @param $name
-     * @param $extension
+     * @param $extensions
      * @param $ownerEmail
      * @param $purchases
      * @param $price
@@ -80,7 +80,7 @@ class ModelDTO
     public function __construct(
         $id,
         $name,
-        $extension,
+        $extensions,
         $ownerEmail,
         $purchases,
         $price,
@@ -91,7 +91,7 @@ class ModelDTO
     ) {
         $this->id = $id;
         $this->name = $name;
-        $this->extension = $extension;
+        $this->extensions = $extensions;
         $this->ownerEmail = $ownerEmail;
         $this->purchases = $purchases;
         $this->price = $price;
@@ -136,17 +136,17 @@ class ModelDTO
     /**
      * @return mixed
      */
-    public function getExtension()
+    public function getExtensions()
     {
-        return $this->extension;
+        return $this->extensions;
     }
 
     /**
-     * @param mixed $extension
+     * @param mixed $extensions
      */
-    public function setExtension($extension): void
+    public function setExtensions($extensions): void
     {
-        $this->extension = $extension;
+        $this->extensions = $extensions;
     }
 
     /**

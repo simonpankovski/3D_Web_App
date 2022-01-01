@@ -9,11 +9,12 @@ class ModelDTOService
 {
     public function convertModelEntityToDTO(Model $model, array $links): ModelDTO
     {
-        $modelDTO = new ModelDTO($model->getId(), $model->getName(), $model->getExtension(), $model->getOwner()->getEmail(), $model->getPurchases(), $model->getPrice(), $model->isApproved(), $model->getCreatedOn(), $model->getUpdatedOn(), $links);
+        $modelDTO = new ModelDTO($model->getId(), $model->getName(), $model->getExtensions(), $model->getOwner()->getEmail(), $model->getPurchases(), $model->getPrice(), $model->isApproved(), $model->getCreatedOn(), $model->getUpdatedOn(), $links);
         $userEmails = [];
         $tags = [];
-        foreach ($model->getPurchases() as $user) {
-            $userEmails[] = $user->getEmail();
+
+        foreach ($model->getPurchases() as $purchase) {
+            $userEmails[] = $purchase->getUser()->getEmail();
         }
         foreach ($model->getTags() as $tag) {
             $tags[] = $tag->getName();

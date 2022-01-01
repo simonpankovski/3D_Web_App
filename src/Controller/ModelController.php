@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\{Entity\Model, Entity\Tag, Entity\User, Repository\ModelRepository, Service\ModelDTOService};
+use App\{Entity\Model, Entity\Purchase, Entity\Tag, Entity\User, Repository\ModelRepository, Service\ModelDTOService};
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Cloud\Storage\{StorageClient, StorageObject};
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -41,7 +41,7 @@ class ModelController extends AbstractController
                                          'keyFile' => $decodedJson
                                      ]);
         $bucket = $storage->bucket('polybase-files');
-        $fileName = $model->getId() . "." . $model->getExtension();
+        $fileName = $model->getId() . "." . $model->getExtensions();
         return $bucket->object($fileName);
     }
 
@@ -96,6 +96,7 @@ class ModelController extends AbstractController
         $zip = new ZipArchive();
         $file = "";
         $modelRepo = $this->entityManager->getRepository(Model::class);
+        $extensionsArray = [];
         if (sizeof($files) === 1) {
             if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
                 return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!']);
@@ -106,13 +107,15 @@ class ModelController extends AbstractController
             if ($zip->open('test_new.zip', ZipArchive::CREATE) === true) {
                 foreach ($files as $file) {
                     $zip->addFile($file->getPathName(), $file->getClientOriginalName());
+                    $extensionsArray[] = pathinfo($file->getClientOriginalName())["extension"];
                 }
                 $file = $zip->filename;
                 $zip->close();
                 $file = new File($file);
             }
         }
-        $extension = "zip"/* pathinfo($file->getClientOriginalName())["extension"]*/;
+
+        array_unshift($extensionsArray, "zip");
         $model = new Model();
         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
         $decodedToken = $jwtManager->parse($token);
@@ -135,13 +138,13 @@ class ModelController extends AbstractController
                 $model->addTag($tag);
             }
         }
-        $model->setName($requestBody["name"])->setExtension($extension)->setPrice($requestBody["price"]);
+        $model->setName($requestBody["name"])->setExtensions($extensionsArray)->setPrice($requestBody["price"]);
         $model->setOwner($user);
         $this->entityManager->persist($model);
         $this->entityManager->flush();
 
 
-        $modelName = $model->getId() . "." . $extension;
+        $modelName = $model->getId() . "." . $extensionsArray[0];
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
@@ -168,21 +171,28 @@ class ModelController extends AbstractController
     /**
      * @Route("/{id}", name="model_show", methods={"GET"})
      */
-    public function show(?Model $model = null): Response
+    public function show(?Model $model = null, JWTTokenManagerInterface $jwtManager, Request $request): Response
     {
         if (!$model) {
             return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
         }
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $jwtManager->parse($token);
         $decodedJson = json_decode(
             file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
             true
         );
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
+        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);
+        if($purchase == null) {
+            return $this->json(["code" => 403, "Forbidden!"], 403);
+        }
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
         $storage->registerStreamWrapper();
         $bucket = $storage->bucket('polybase-files');
-        $bucket->object($model->getId() . "." . $model->getExtension())->downloadToFile("public.zip");
+        $bucket->object($model->getId() . "." . $model->getExtensions()[0])->downloadToFile("public.zip");
 
         return $this->file(getcwd() . "\public.zip");
     }
@@ -205,7 +215,7 @@ class ModelController extends AbstractController
                     'id',
                     'rating',
                     'owner',
-                    'extension',
+                    'extensions',
                     'approved',
                     'createdOn',
                     'updatedOn',

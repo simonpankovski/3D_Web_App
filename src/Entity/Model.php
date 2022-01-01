@@ -30,9 +30,9 @@ class Model
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="json")
      */
-    private $extension;
+    private $extensions = [];
 
     /**
      * @ManyToOne(targetEntity="User")
@@ -83,19 +83,20 @@ class Model
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getExtension()
+    public function getExtensions(): array
     {
-        return $this->extension;
+        return array_unique($this->extensions);
     }
 
     /**
-     * @param mixed $extension
+     * @param array $extensions
+     * @return self
      */
-    public function setExtension($extension): self
+    public function setExtensions(array $extensions): self
     {
-        $this->extension = $extension;
+        $this->extensions = $extensions;
 
         return $this;
     }
@@ -176,9 +177,9 @@ class Model
     }
 
     /**
-     * @return array
+     * @return mixed
      */
-    public function getPurchases(): array
+    public function getPurchases()
     {
         return $this->purchases;
     }

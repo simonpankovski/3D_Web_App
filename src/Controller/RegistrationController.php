@@ -42,16 +42,18 @@ class RegistrationController extends AbstractController
         JWTTokenManagerInterface $JWTManager,
         MailerInterface $mailer
     ): Response {
-        $user = new User();
         $formData = json_decode($request->getContent(), true);
-        dd($formData);
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $formData['username']]);
+        if (!($user==null)) {
+            return $this->json(['code' => 400, 'message' => 'User Already exists!']);
+        }
+        $user = new User();
         $user->setPassword(
             $userPasswordHasher->hashPassword(
                 $user,
                 $formData['password']
             )
         )->setIsVerified(false)->setRoles(['USER_ROLE'])->setEmail($formData['username']);
-        dd($user);
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -66,7 +68,7 @@ class RegistrationController extends AbstractController
                           'token' => $token
                       ]);
         $mailer->send($email);
-        return $this->json($token);
+        return $this->json(["token" => $token]);
     }
 
     /**
@@ -90,8 +92,6 @@ class RegistrationController extends AbstractController
         }
         $user->setIsVerified(true);
         $em->flush();
-        // @TODO Change the redirect on success and handle or remove the flash message in your templates
-        //$this->addFlash('success', 'Your email address has been verified.');
 
         return $this->json('succ');
     }
