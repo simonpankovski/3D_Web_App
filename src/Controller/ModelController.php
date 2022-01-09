@@ -4,12 +4,14 @@ namespace App\Controller;
 
 use App\{Entity\Model, Entity\Purchase, Entity\Tag, Entity\User, Repository\ModelRepository, Service\ModelDTOService};
 use Doctrine\ORM\EntityManagerInterface;
+use PhpParser\Node\Expr\AssignOp\Mod;
 use Google\Cloud\Storage\{StorageClient, StorageObject};
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{File\File, JsonResponse, Request, Response};
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\{Normalizer\AbstractNormalizer, SerializerInterface};
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ZipArchive;
 
 /**
@@ -58,13 +60,14 @@ class ModelController extends AbstractController
 
         $page = array_key_exists('page', $queryParams) ? $queryParams['page'] : 1;
         $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 10;
+        $category = array_key_exists('category', $queryParams) ? $queryParams['category'] : null;
+        $totalModels = $modelRepository->countModels($category);
         if (!is_numeric($page) || (int)$page < 1 || !is_numeric($size) || (int)$size < 1) {
             return $this->json(["code" => 400, "message" => "Invalid query parameters provided!"], 400);
         }
         $itemsPerPage = in_array((int)$size, $permittedSizes) ? (int)$size : 10;
-
         $index = ((int)$page - 1) * $itemsPerPage;
-        $results = $modelRepository->findAllAndPaginate($index, $itemsPerPage);
+        $results = $modelRepository->findAllAndPaginate($index, $itemsPerPage, $category);
         $modelDTOArray = [];
         $decodedJson = json_decode(
             file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
@@ -82,6 +85,7 @@ class ModelController extends AbstractController
             }
             $modelDTOArray[] = $modelDTOService->convertModelEntityToDTO($result, $thumbnailLinks);
         }
+        $modelDTOArray[] = (int) ceil($totalModels/$itemsPerPage);
         return $this->json($modelDTOArray);
     }
 
@@ -90,10 +94,12 @@ class ModelController extends AbstractController
      */
     public function new(
         Request $request,
-        JWTTokenManagerInterface $jwtManager
+        JWTTokenManagerInterface $jwtManager,
+        ValidatorInterface $validator
     ): Response {
         $files = $request->files->get("format");
         $zip = new ZipArchive();
+        $requestBody = $request->request->all();
         $file = "";
         $modelRepo = $this->entityManager->getRepository(Model::class);
         $extensionsArray = [];
@@ -129,7 +135,6 @@ class ModelController extends AbstractController
         if($query > 0) {
             return $this->json(['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!']);
         }
-        $requestBody = $request->request->all();
         $tags = array_key_exists("tags", $requestBody) ? $requestBody["tags"] : null;
         $tags = $this->entityManager->getRepository(Tag::class)->findBy(['name' => json_decode($tags, true)]);
 
@@ -138,8 +143,12 @@ class ModelController extends AbstractController
                 $model->addTag($tag);
             }
         }
-        $model->setName($requestBody["name"])->setExtensions($extensionsArray)->setPrice($requestBody["price"]);
+        $model->setName($requestBody["name"])->setExtensions($extensionsArray)->setPrice($requestBody["price"])->setCategory($requestBody['category']);
         $model->setOwner($user);
+        $errors = $validator->validate($model);
+        if(count($errors) > 0){
+            return $this->json(['code' => 400, 'message' => "Invalid category!"], 400);
+        }
         $this->entityManager->persist($model);
         $this->entityManager->flush();
 

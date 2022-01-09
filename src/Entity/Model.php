@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=ModelRepository::class)
@@ -17,6 +18,7 @@ class Model
 {
     use Timestamp;
 
+    const CHOICES = ['Space', 'Transport', 'Architecture', 'Nature', 'Food', 'Character', 'Abstract'];
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -59,6 +61,12 @@ class Model
      * @ORM\ManyToMany(targetEntity=Tag::class, mappedBy="models")
      */
     private $tags;
+
+    /**
+     * @Assert\Choice(Model::CHOICES)
+     * @ORM\Column(type="string")
+     */
+    private $category;
 
     public function __construct()
     {
@@ -127,10 +135,13 @@ class Model
 
     /**
      * @param int $price
+     * @return self
      */
-    public function setPrice(int $price): void
+    public function setPrice(int $price): self
     {
         $this->price = $price;
+
+        return $this;
     }
 
     /**
@@ -190,5 +201,24 @@ class Model
     public function addPurchase(Purchase $purchase): void
     {
         $this->purchases[] = $purchase;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    /**
+     * @param mixed $category
+     * @return self
+     */
+    public function setCategory($category): self
+    {
+        $this->category = $category;
+
+        return $this;
     }
 }

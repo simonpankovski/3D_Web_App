@@ -19,26 +19,35 @@ class ModelRepository extends ServiceEntityRepository
         parent::__construct($registry, Model::class);
     }
 
-    public function findAllAndPaginate($index, $pageSize): array
+    public function findAllAndPaginate($index, $pageSize, $category): array
     {
-        return $this->createQueryBuilder('m')
-            ->orderBy('m.id', 'ASC')
+        $query = $this->createQueryBuilder('m');
+            if($category != null){
+                $query->where('m.category = :cat')
+                    ->setParameter('cat', $category);
+            }
+            $query->orderBy('m.id', 'ASC')
             ->setFirstResult($index)
             ->setMaxResults($pageSize)
-            ->getQuery()
-            ->getResult()
         ;
+        return $query->getQuery()
+            ->getResult();
     }
 
-    /*
-    public function findOneBySomeField($value): ?Model
+
+    /**
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
+     */
+    public function countModels($category): int
     {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $query = $this->createQueryBuilder('m')->select('count(m.id)');
+        if ($category != null) {
+            $query->where('m.category = :val')
+                ->setParameter('val', $category);
+        }
+        return $query->getQuery()
+            ->getSingleScalarResult();
     }
-    */
+
 }
