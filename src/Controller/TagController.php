@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\{Encoder\JsonEncoder,
 /**
  * @Route("/api/tag")
  */
-class TagController extends AbstractController implements HasAdminRole
+class TagController extends AbstractController //implements HasAdminRole
 {
     private $serializer;
     private $entityManager;
@@ -29,7 +29,6 @@ class TagController extends AbstractController implements HasAdminRole
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
     }
-
     /**
      * @Route("/", name="tag_index", methods={"GET"})
      */
@@ -45,7 +44,11 @@ class TagController extends AbstractController implements HasAdminRole
 
         $serializer = new Serializer([$normalizer], [$encoder]);
         $tags = $this->entityManager->getRepository(Tag::class)->findAll();
-        return new JsonResponse($serializer->normalize($tags, 'json'));
+        $tagNames = [];
+        foreach ($tags as $tag){
+            $tagNames[] = $tag->getName();
+        }
+        return new JsonResponse($serializer->normalize($tagNames, 'json'));
     }
 
     /**

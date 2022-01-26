@@ -28,6 +28,8 @@ class Model
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * @Assert\Length(min=5, max=50)
      */
     private $name;
 
@@ -39,6 +41,7 @@ class Model
     /**
      * @ManyToOne(targetEntity="User")
      * @JoinColumn(name="owner_id", referencedColumnName="id")
+     * @Assert\NotNull
      */
     private $owner;
 
@@ -49,11 +52,14 @@ class Model
 
     /**
      * @ORM\Column(type="integer", options={"default": 0})
+     * @Assert\Type(type="integer")
+     * @Assert\PositiveOrZero()
      */
     private $price = 0;
 
     /**
      * @ORM\Column(type="boolean", options={"default": false})
+     * @Assert\Type(type="boolean")
      */
     private $approved = false;
 

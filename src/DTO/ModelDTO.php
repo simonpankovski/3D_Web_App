@@ -11,6 +11,8 @@ class ModelDTO
      */
     private $id;
 
+    private $rating;
+
     /**
      * @Assert\Type(type="string")
      * @Assert\Length(min={1}, max={500})
@@ -76,6 +78,7 @@ class ModelDTO
      * @param $createdOn
      * @param $updatedOn
      * @param $thumbnailLinks
+     * @param $rating
      */
     public function __construct(
         $id,
@@ -87,7 +90,8 @@ class ModelDTO
         $approved,
         $createdOn,
         $updatedOn,
-        $thumbnailLinks
+        $thumbnailLinks,
+        $rating
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -99,6 +103,7 @@ class ModelDTO
         $this->createdOn = $createdOn;
         $this->updatedOn = $updatedOn;
         $this->thumbnailLinks = $thumbnailLinks;
+        $this->rating = $rating;
     }
 
     /**
@@ -115,6 +120,22 @@ class ModelDTO
     public function setId($id): void
     {
         $this->id = $id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRating()
+    {
+        return $this->rating;
+    }
+
+    /**
+     * @param mixed $rating
+     */
+    public function setRating($rating): void
+    {
+        $this->rating = $rating;
     }
 
     /**

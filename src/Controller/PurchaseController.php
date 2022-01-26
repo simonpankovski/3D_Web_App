@@ -18,13 +18,20 @@ class PurchaseController extends AbstractController
     /**
      * @Route("/", methods={"POST"})
      */
-    public function index(Request $request): Response
+    public function index(Request $request, JWTTokenManagerInterface $tokenManager): Response
     {
+
         $queryParams = $request->query->all();
         $em = $this->getDoctrine();
-        $user = $em->getRepository(User::class)->findOneBy(['email' => $queryParams['user']]);
         $model = $em->getRepository(Model::class)->findOneBy(['id' => $queryParams['model']]);
-        if(!$user || !$model){
+        if (!$model) {
+            return $this->json(['code' => 404, 'message' => 'Model wasn\'t found']);
+        }
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $tokenManager->parse($token);
+        $ownerEmail = $decodedToken["username"];
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $ownerEmail]);
+        if(!$user){
             return $this->json(['code' => 404, 'message' => 'Entity not found!']);
         }
         $purchase = new Purchase($user, $model);

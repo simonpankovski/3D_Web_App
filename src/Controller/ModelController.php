@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\{Entity\Model, Entity\Purchase, Entity\Tag, Entity\User, Repository\ModelRepository, Service\ModelDTOService};
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Node\Expr\AssignOp\Mod;
 use Google\Cloud\Storage\{StorageClient, StorageObject};
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -83,7 +82,13 @@ class ModelController extends AbstractController
             foreach ($bucket->objects($options) as $object) {
                 $thumbnailLinks[] = $bucket->object($object->name())->signedUrl(new \DateTime('1 hour'));
             }
-            $modelDTOArray[] = $modelDTOService->convertModelEntityToDTO($result, $thumbnailLinks);
+            $query = $this->getDoctrine()->getRepository(Purchase::class);
+            $count = $query->createQueryBuilder('p')
+                ->select('avg(p.rating), count(p.model)')
+                ->where('p.model = :id')
+                ->setParameter('id', $result->getId())
+                ->getQuery()->getScalarResult();
+            $modelDTOArray[] = $modelDTOService->convertModelEntityToDTO($result, $thumbnailLinks, $count);
         }
         $modelDTOArray[] = (int) ceil($totalModels/$itemsPerPage);
         return $this->json($modelDTOArray);
@@ -98,6 +103,9 @@ class ModelController extends AbstractController
         ValidatorInterface $validator
     ): Response {
         $files = $request->files->get("format");
+       if($files==null){
+           return $this->json(['code' => 400, 'message' => 'No files were attached']);
+       }
         $zip = new ZipArchive();
         $requestBody = $request->request->all();
         $file = "";
@@ -147,7 +155,7 @@ class ModelController extends AbstractController
         $model->setOwner($user);
         $errors = $validator->validate($model);
         if(count($errors) > 0){
-            return $this->json(['code' => 400, 'message' => "Invalid category!"], 400);
+            return $this->json(['code' => 400, 'message' => "Model is not valid!"], 400);
         }
         $this->entityManager->persist($model);
         $this->entityManager->flush();
@@ -158,10 +166,10 @@ class ModelController extends AbstractController
                                          'keyFile' => $decodedJson
                                      ]);
         $bucket = $storage->bucket('polybase-files');
-        foreach ($request->files->all() as $key => $value) {
-            if(is_array($value)) {
+        foreach ($request->files->get("thumbnails") as $key => $value) {
+            /*if(is_array($value)) {
                 continue;
-            }
+            }*/
             $extension = pathinfo($value->getClientOriginalName())["extension"];
             if ($extension == "jpg" || $extension == "png") {
                 $bucket->upload(
@@ -182,7 +190,7 @@ class ModelController extends AbstractController
      */
     public function show(?Model $model = null, JWTTokenManagerInterface $jwtManager, Request $request): Response
     {
-        if (!$model) {
+       /* if (!$model) {
             return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
         }
         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
@@ -192,18 +200,40 @@ class ModelController extends AbstractController
             true
         );
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
-        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);
-        if($purchase == null) {
+        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);*/
+        /*if($purchase == null) {
             return $this->json(["code" => 403, "Forbidden!"], 403);
-        }
-        $storage = new StorageClient([
+        }*/
+        /*$storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
         $storage->registerStreamWrapper();
         $bucket = $storage->bucket('polybase-files');
         $bucket->object($model->getId() . "." . $model->getExtensions()[0])->downloadToFile("public.zip");
-
-        return $this->file(getcwd() . "\public.zip");
+        $zip = new ZipArchive;
+        $pathToZip = getcwd() . "\public.zip";
+        if ($zip->open($pathToZip) === TRUE) {
+            mkdir(getcwd() . "\\models");
+            $zip->extractTo(getcwd() . "\\models");
+            $zip->close();
+            return $this->json("succ");
+        } else {
+            return $this->json("not");
+        }*/
+        //return $this->file(getcwd() . "\public.zip");
+       /* $fileNames = scandir(getcwd() . "\models\\textures");
+        $files = array_map(function ($el){
+            $element = getcwd() . "\models\\textures\\" . $el;
+            return $this->file($element);
+        }, array_slice($fileNames, 2));*/
+        $fileNames = scandir(getcwd() . "\models\\textures");
+        $files = array_map(function ($el){
+            $element = getcwd() . "\models\\textures\\" . $el;
+            return $this->file($element);
+        }, array_slice($fileNames, 2));
+        return $this->json($files);
+        /*$file = $this->file(getcwd() . "\models\\chair\\Eames_FBX.fbx");
+        */
     }
 
     /**
