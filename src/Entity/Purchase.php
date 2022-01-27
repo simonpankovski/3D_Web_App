@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity
@@ -11,12 +10,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Purchase
 {
     use Timestamp;
-
-    /**
-     * @ORM\Column(type="float")
-     * @Assert\Range(min="1", max="5")
-     */
-    protected $rating;
 
     /**
      * @ORM\Id
@@ -38,25 +31,8 @@ class Purchase
      */
     public function __construct($user, $model)
     {
-        $this->rating = 0;
         $this->user = $user;
         $this->model = $model;
-    }
-
-    /**
-     * @return float
-     */
-    public function getRating()
-    {
-        return $this->rating;
-    }
-
-    /**
-     * @param float $rating
-     */
-    public function setRating(float $rating): void
-    {
-        $this->rating = $rating;
     }
 
     /**

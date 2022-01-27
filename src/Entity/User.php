@@ -52,12 +52,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $purchases;
 
+    /**
+     * @ORM\OneToMany(targetEntity=TexturePurchase::class, mappedBy="user")
+     */
+    private $texturePurchases;
+
     public function __construct()
     {
         $this->purchases = new ArrayCollection();
+        $this->texturePurchases = new ArrayCollection();
     }
 
-    
     public function getId(): ?int
     {
         return $this->id;
@@ -160,18 +165,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return ArrayCollection
+     * @return mixed
      */
-    public function getPurchases(): ArrayCollection
+    public function getPurchases()
     {
         return $this->purchases;
     }
 
     /**
-     * @param ArrayCollection $purchases
+     * @param mixed $purchases
      */
-    public function setPurchases(ArrayCollection $purchases): void
+    public function setPurchases($purchases): void
     {
         $this->purchases = $purchases;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTexturePurchases()
+    {
+        return $this->texturePurchases;
+    }
+
+    /**
+     * @param mixed $texturePurchases
+     */
+    public function setTexturePurchases($texturePurchases): void
+    {
+        $this->texturePurchases = $texturePurchases;
     }
 }

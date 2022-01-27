@@ -49,5 +49,4 @@ class ModelRepository extends ServiceEntityRepository
         return $query->getQuery()
             ->getSingleScalarResult();
     }
-
 }

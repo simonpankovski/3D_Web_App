@@ -82,15 +82,9 @@ class ModelController extends AbstractController
             foreach ($bucket->objects($options) as $object) {
                 $thumbnailLinks[] = $bucket->object($object->name())->signedUrl(new \DateTime('1 hour'));
             }
-            $query = $this->getDoctrine()->getRepository(Purchase::class);
-            $count = $query->createQueryBuilder('p')
-                ->select('avg(p.rating), count(p.model)')
-                ->where('p.model = :id')
-                ->setParameter('id', $result->getId())
-                ->getQuery()->getScalarResult();
-            $modelDTOArray[] = $modelDTOService->convertModelEntityToDTO($result, $thumbnailLinks, $count);
+            $modelDTOArray[] = $modelDTOService->convertModelEntityToDTO($result, $thumbnailLinks);
         }
-        $modelDTOArray[] = (int) ceil($totalModels/$itemsPerPage);
+        $modelDTOArray[] = (int)ceil($totalModels / $itemsPerPage);
         return $this->json($modelDTOArray);
     }
 
@@ -103,9 +97,9 @@ class ModelController extends AbstractController
         ValidatorInterface $validator
     ): Response {
         $files = $request->files->get("format");
-       if($files==null){
-           return $this->json(['code' => 400, 'message' => 'No files were attached']);
-       }
+        if ($files == null) {
+            return $this->json(['code' => 400, 'message' => 'No files were attached'], 400);
+        }
         $zip = new ZipArchive();
         $requestBody = $request->request->all();
         $file = "";
@@ -113,7 +107,7 @@ class ModelController extends AbstractController
         $extensionsArray = [];
         if (sizeof($files) === 1) {
             if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
-                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!']);
+                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!'], 400);
             } else {
                 $file = $files[0];
             }
@@ -139,9 +133,13 @@ class ModelController extends AbstractController
         );
 
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
-        $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere('m.approved = false')->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
-        if($query > 0) {
-            return $this->json(['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!']);
+        $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere(
+            'm.approved = false'
+        )->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
+        if ($query > 0) {
+            return $this->json(
+                ['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!'], 400
+            );
         }
         $tags = array_key_exists("tags", $requestBody) ? $requestBody["tags"] : null;
         $tags = $this->entityManager->getRepository(Tag::class)->findBy(['name' => json_decode($tags, true)]);
@@ -151,10 +149,12 @@ class ModelController extends AbstractController
                 $model->addTag($tag);
             }
         }
-        $model->setName($requestBody["name"])->setExtensions($extensionsArray)->setPrice($requestBody["price"])->setCategory($requestBody['category']);
+        $model->setName($requestBody["name"])->setExtensions($extensionsArray)->setPrice(
+            $requestBody["price"]
+        )->setCategory($requestBody['category']);
         $model->setOwner($user);
         $errors = $validator->validate($model);
-        if(count($errors) > 0){
+        if (count($errors) > 0) {
             return $this->json(['code' => 400, 'message' => "Model is not valid!"], 400);
         }
         $this->entityManager->persist($model);
@@ -167,9 +167,6 @@ class ModelController extends AbstractController
                                      ]);
         $bucket = $storage->bucket('polybase-files');
         foreach ($request->files->get("thumbnails") as $key => $value) {
-            /*if(is_array($value)) {
-                continue;
-            }*/
             $extension = pathinfo($value->getClientOriginalName())["extension"];
             if ($extension == "jpg" || $extension == "png") {
                 $bucket->upload(
@@ -180,9 +177,10 @@ class ModelController extends AbstractController
         }
         $bucket->upload(
             file_get_contents($file),
-            ["name" => $modelName]);
+            ["name" => $modelName]
+        );
 
-        return $this->json("asd");
+        return $this->json(["code" => 200, "message" => "Success!"]);
     }
 
     /**
@@ -190,17 +188,17 @@ class ModelController extends AbstractController
      */
     public function show(?Model $model = null, JWTTokenManagerInterface $jwtManager, Request $request): Response
     {
-       /* if (!$model) {
-            return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
-        }
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        $decodedToken = $jwtManager->parse($token);
-        $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
-            true
-        );
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
-        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);*/
+        /* if (!$model) {
+             return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
+         }
+         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+         $decodedToken = $jwtManager->parse($token);
+         $decodedJson = json_decode(
+             file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+             true
+         );
+         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
+         $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);*/
         /*if($purchase == null) {
             return $this->json(["code" => 403, "Forbidden!"], 403);
         }*/
@@ -221,13 +219,13 @@ class ModelController extends AbstractController
             return $this->json("not");
         }*/
         //return $this->file(getcwd() . "\public.zip");
-       /* $fileNames = scandir(getcwd() . "\models\\textures");
-        $files = array_map(function ($el){
-            $element = getcwd() . "\models\\textures\\" . $el;
-            return $this->file($element);
-        }, array_slice($fileNames, 2));*/
+        /* $fileNames = scandir(getcwd() . "\models\\textures");
+         $files = array_map(function ($el){
+             $element = getcwd() . "\models\\textures\\" . $el;
+             return $this->file($element);
+         }, array_slice($fileNames, 2));*/
         $fileNames = scandir(getcwd() . "\models\\textures");
-        $files = array_map(function ($el){
+        $files = array_map(function ($el) {
             $element = getcwd() . "\models\\textures\\" . $el;
             return $this->file($element);
         }, array_slice($fileNames, 2));

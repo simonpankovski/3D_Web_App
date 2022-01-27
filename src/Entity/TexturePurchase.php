@@ -13,22 +13,58 @@ class TexturePurchase
     use Timestamp;
 
     /**
-     * @ORM\Column(type="float")
-     * @Assert\Range(min="1", max="5")
-     */
-    protected $rating;
-
-    /**
      * @ORM\Id
-     * @ORM\ManyToOne(targetEntity="User", inversedBy="purchases")
+     * @ORM\ManyToOne(targetEntity="User", inversedBy="texturePurchases")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
      */
     protected $user;
 
     /**
      * @ORM\Id()
-     * @ORM\ManyToOne(targetEntity="Model", inversedBy="purchases")
-     * @ORM\JoinColumn(name="model_id", referencedColumnName="id", nullable=false)
+     * @ORM\ManyToOne(targetEntity="Texture", inversedBy="texturePurchases")
+     * @ORM\JoinColumn(name="texture_id", referencedColumnName="id", nullable=false)
      */
-    protected $model;
+    protected $texture;
+
+    /**
+     * @param $user
+     * @param $texture
+     */
+    public function __construct($user, $texture)
+    {
+        $this->user = $user;
+        $this->texture = $texture;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * @param mixed $user
+     */
+    public function setUser($user): void
+    {
+        $this->user = $user;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTexture()
+    {
+        return $this->texture;
+    }
+
+    /**
+     * @param mixed $texture
+     */
+    public function setTexture($texture): void
+    {
+        $this->texture = $texture;
+    }
 }

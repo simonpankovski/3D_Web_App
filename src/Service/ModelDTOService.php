@@ -7,14 +7,15 @@ use App\Entity\Model;
 
 class ModelDTOService
 {
-    public function convertModelEntityToDTO(Model $model, array $links, array $rating): ModelDTO
+    public function convertModelEntityToDTO(Model $model, array $links): ModelDTO
     {
-        $modelDTO = new ModelDTO($model->getId(), $model->getName(), $model->getExtensions(), $model->getOwner()->getEmail(), $model->getPurchases(), $model->getPrice(), $model->isApproved(), $model->getCreatedOn(), $model->getUpdatedOn(), $links, $rating);
+        $modelDTO = new ModelDTO($model->getId(), $model->getName(), $model->getExtensions(), $model->getOwner()->getEmail(), $model->getPurchases(), $model->getPrice(), $model->isApproved(), $model->getCreatedOn(), $model->getUpdatedOn(), $links, $model->getRating(), $model->getPurchaseCount());
         $userEmails = [];
         $tags = [];
-
-        foreach ($model->getPurchases() as $purchase) {
-            $userEmails[] = $purchase->getUser()->getEmail();
+        if ($model->getPurchases() != null) {
+            foreach ($model->getPurchases() as $purchase) {
+                $userEmails[] = $purchase->getUser()->getEmail();
+            }
         }
         foreach ($model->getTags() as $tag) {
             $tags[] = $tag->getName();

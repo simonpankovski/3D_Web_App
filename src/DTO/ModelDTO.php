@@ -68,6 +68,11 @@ class ModelDTO
     private $updatedOn;
 
     /**
+     * @Assert\PositiveOrZero()
+     */
+    private $purchaseCount;
+
+    /**
      * @param $id
      * @param $name
      * @param $extensions
@@ -79,6 +84,7 @@ class ModelDTO
      * @param $updatedOn
      * @param $thumbnailLinks
      * @param $rating
+     * @param $purchaseCount
      */
     public function __construct(
         $id,
@@ -91,7 +97,8 @@ class ModelDTO
         $createdOn,
         $updatedOn,
         $thumbnailLinks,
-        $rating
+        $rating,
+        $purchaseCount
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -104,6 +111,7 @@ class ModelDTO
         $this->updatedOn = $updatedOn;
         $this->thumbnailLinks = $thumbnailLinks;
         $this->rating = $rating;
+        $this->purchaseCount = $purchaseCount;
     }
 
     /**
@@ -296,5 +304,21 @@ class ModelDTO
     public function setPurchases($purchases): void
     {
         $this->purchases = $purchases;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPurchaseCount()
+    {
+        return $this->purchaseCount;
+    }
+
+    /**
+     * @param mixed $purchaseCount
+     */
+    public function setPurchaseCount($purchaseCount): void
+    {
+        $this->purchaseCount = $purchaseCount;
     }
 }

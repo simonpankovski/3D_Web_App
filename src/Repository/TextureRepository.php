@@ -19,32 +19,33 @@ class TextureRepository extends ServiceEntityRepository
         parent::__construct($registry, Texture::class);
     }
 
-    // /**
-    //  * @return Texture[] Returns an array of Texture objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findAllAndPaginate($index, $pageSize, $category): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('t.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
+        $query = $this->createQueryBuilder('t');
+        if($category != null){
+            $query->where('t.category = :cat')
+                ->setParameter('cat', $category);
+        }
+        $query->orderBy('t.id', 'ASC')
+            ->setFirstResult($index)
+            ->setMaxResults($pageSize)
         ;
+        return $query->getQuery()
+            ->getResult();
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Texture
+    /**
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
+     */
+    public function countTextures($category): int
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $query = $this->createQueryBuilder('t')->select('count(t.id)');
+        if ($category != null) {
+            $query->where('t.category = :val')
+                ->setParameter('val', $category);
+        }
+        return $query->getQuery()
+            ->getSingleScalarResult();
     }
-    */
 }

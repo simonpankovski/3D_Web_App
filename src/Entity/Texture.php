@@ -28,14 +28,9 @@ class Texture
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank
-     * @Assert\Length(min=5, max=50)
+     * @Assert\Length(min=5, max=255)
      */
     private $name;
-
-    /**
-     * @ORM\Column(type="json")
-     */
-    private $extensions = [];
 
     /**
      * @ManyToOne(targetEntity="User")
@@ -45,9 +40,19 @@ class Texture
     private $owner;
 
     /**
-     * @ORM\OneToMany(targetEntity=Purchase::class, mappedBy="model")
+     * @ORM\OneToMany(targetEntity=TexturePurchase::class, mappedBy="texture")
      */
     private $purchases;
+
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $purchaseCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $rating = 0;
 
     /**
      * @ORM\Column(type="integer", options={"default": 0})
@@ -84,25 +89,10 @@ class Texture
     /**
      * @param mixed $name
      */
-    public function setName($name): void
+    public function setName($name): self
     {
         $this->name = $name;
-    }
-
-    /**
-     * @return array
-     */
-    public function getExtensions(): array
-    {
-        return $this->extensions;
-    }
-
-    /**
-     * @param array $extensions
-     */
-    public function setExtensions(array $extensions): void
-    {
-        $this->extensions = $extensions;
+        return $this;
     }
 
     /**
@@ -147,10 +137,12 @@ class Texture
 
     /**
      * @param int $price
+     * @return self
      */
-    public function setPrice(int $price): void
+    public function setPrice(int $price): self
     {
         $this->price = $price;
+        return $this;
     }
 
     /**
@@ -172,22 +164,6 @@ class Texture
     /**
      * @return mixed
      */
-    public function getTags()
-    {
-        return $this->tags;
-    }
-
-    /**
-     * @param mixed $tags
-     */
-    public function setTags($tags): void
-    {
-        $this->tags = $tags;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getCategory()
     {
         return $this->category;
@@ -199,5 +175,35 @@ class Texture
     public function setCategory($category): void
     {
         $this->category = $category;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPurchaseCount(): int
+    {
+        return $this->purchaseCount;
+    }
+
+    public function setPurchaseCount(): void
+    {
+        $this->purchaseCount = $this->purchaseCount + 1;
+    }
+
+    /**
+     * @return float
+     */
+    public function getRating(): float
+    {
+        if (!($this->purchaseCount == 0)) return $this->rating / $this->purchaseCount;
+        else return 0;
+    }
+
+    /**
+     * @param int $rating
+     */
+    public function setRating(int $rating): void
+    {
+        $this->rating = $this->rating + $rating;
     }
 }

@@ -52,6 +52,16 @@ class Model
 
     /**
      * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $purchaseCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $rating = 0;
+
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
      * @Assert\Type(type="integer")
      * @Assert\PositiveOrZero()
      */
@@ -226,5 +236,38 @@ class Model
         $this->category = $category;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPurchaseCount(): int
+    {
+        return $this->purchaseCount;
+    }
+
+    /**
+     * @param int $purchaseCount
+     */
+    public function setPurchaseCount(int $purchaseCount): void
+    {
+        $this->purchaseCount = $this->purchaseCount + 1;
+    }
+
+    /**
+     * @return float
+     */
+    public function getRating(): float
+    {
+        if (!($this->purchaseCount == 0)) return $this->rating / $this->purchaseCount;
+        else return 0;
+    }
+
+    /**
+     * @param int $rating
+     */
+    public function setRating(int $rating): void
+    {
+        $this->rating = $this->rating + $rating;
     }
 }
