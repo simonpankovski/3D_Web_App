@@ -26,6 +26,7 @@ class PostResponseSubscriber implements EventSubscriberInterface
             $folderNames = array_slice(scandir($commonPath), 2);
             foreach ($folderNames as $folderName) {
                 $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
+                dd($fileNames);
                 foreach ($fileNames as $fileName) {
                     unlink($commonPath . "\\" . $folderName . "\\" .$fileName);
                 }
