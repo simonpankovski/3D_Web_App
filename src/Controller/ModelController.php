@@ -54,11 +54,11 @@ class ModelController extends AbstractController
         ModelRepository $modelRepository,
         ModelDTOService $modelDTOService
     ): JsonResponse {
-        $permittedSizes = [10, 15, 20, 30];
+        $permittedSizes = [5, 15, 20, 30];
         $queryParams = $request->query->all();
 
         $page = array_key_exists('page', $queryParams) ? $queryParams['page'] : 1;
-        $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 10;
+        $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 5;
         $category = array_key_exists('category', $queryParams) ? $queryParams['category'] : null;
         $totalModels = $modelRepository->countModels($category);
         if (!is_numeric($page) || (int)$page < 1 || !is_numeric($size) || (int)$size < 1) {

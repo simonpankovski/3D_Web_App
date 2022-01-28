@@ -2,7 +2,7 @@
 
 namespace App\EventSubscriber;
 
-use App\Controller\HasAdminRole;
+use App\Entity\HasAdminRole;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;

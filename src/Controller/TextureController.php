@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\PostResponse;
 use App\Entity\Texture;
 use App\Entity\User;
 use App\Repository\TextureRepository;
-use App\Service\ModelDTOService;
 use App\Service\TextureDTOService;
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Cloud\Storage\StorageClient;
@@ -23,7 +23,7 @@ use ZipArchive;
 /**
  * @Route("/api/texture")
  */
-class TextureController extends AbstractController
+class TextureController extends AbstractController implements PostResponse
 {
     private $tokenManager;
     private $serializer;
@@ -61,10 +61,10 @@ class TextureController extends AbstractController
         TextureRepository $textureRepository,
         TextureDTOService $textureDTOService
     ): JsonResponse {
-        $permittedSizes = [10, 15, 20, 30];
+        $permittedSizes = [5, 15, 20, 30];
         $queryParams = $request->query->all();
         $page = array_key_exists('page', $queryParams) ? $queryParams['page'] : 1;
-        $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 10;
+        $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 5;
         $category = array_key_exists('category', $queryParams) ? $queryParams['category'] : null;
         $totalTextures = $textureRepository->countTextures($category);
         if (!is_numeric($page) || (int)$page < 1 || !is_numeric($size) || (int)$size < 1) {
@@ -176,14 +176,7 @@ class TextureController extends AbstractController
         //$textureDTOService->convertModelEntityToDTO($texture, [])
         return $this->json(["code" => 200, "message" => "Success"]);
     }
-    function removeDirectory($path) {
-        $files = glob($path . '/*');
-        foreach ($files as $file) {
-            is_dir($file) ? removeDirectory($file) : unlink($file);
-        }
-        rmdir($path);
-        return;
-    }
+
     /**
      * @Route("/{id}", name="texture_show", methods={"GET"})
      */
@@ -219,23 +212,15 @@ class TextureController extends AbstractController
             $zip->extractTo($extractPath);
             $zip->close();
             unlink($zipPath);
-            return $this->json("succ");
+
+            $fileNames = scandir($extractPath);
+            $files = array_map(function ($el) use ($extractPath) {
+                $element = $extractPath . "\\" . $el;
+                return $this->file($element);
+            }, array_slice($fileNames, 2));
+            return $this->json(["code" => 200, "message" => $files], 200);
         } else {
-            return $this->json("not");
+            return $this->json(["code" => 400, "message" => "Could not load the texture!"], 400);
         }
-        //return $this->file(getcwd() . "\public.zip");
-        /* $fileNames = scandir(getcwd() . "\models\\textures");
-         $files = array_map(function ($el){
-             $element = getcwd() . "\models\\textures\\" . $el;
-             return $this->file($element);
-         }, array_slice($fileNames, 2));*/
-        $fileNames = scandir(getcwd() . "\models\\textures");
-        $files = array_map(function ($el) {
-            $element = getcwd() . "\models\\textures\\" . $el;
-            return $this->file($element);
-        }, array_slice($fileNames, 2));
-        return $this->json($files);
-        /*$file = $this->file(getcwd() . "\models\\chair\\Eames_FBX.fbx");
-        */
     }
 }
