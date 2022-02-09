@@ -24,11 +24,13 @@ class PostResponseSubscriber implements EventSubscriberInterface
         if (str_contains($event->getRequest()->getUri(), "/api/texture/")) {
             $commonPath = getcwd() . "\\models\\textures\\";
             $folderNames = array_slice(scandir($commonPath), 2);
-            foreach ($folderNames as $folderName) {
-                $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
-                dd($fileNames);
-                foreach ($fileNames as $fileName) {
-                    unlink($commonPath . "\\" . $folderName . "\\" .$fileName);
+            if (count($folderNames) > 0) {
+                foreach ($folderNames as $folderName) {
+                    $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
+                    foreach ($fileNames as $fileName) {
+                        unlink($commonPath . "\\" . $folderName . "\\" . $fileName);
+                    }
+                    rmdir($commonPath . "\\" . $folderName);
                 }
             }
         }
