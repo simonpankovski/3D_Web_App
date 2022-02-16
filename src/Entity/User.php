@@ -57,6 +57,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $texturePurchases;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Cart::class, mappedBy="user")
+     */
+    private $cartItems;
+
     public function __construct()
     {
         $this->purchases = new ArrayCollection();
@@ -87,7 +92,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
@@ -95,7 +100,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUsername(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
@@ -178,6 +183,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPurchases($purchases): void
     {
         $this->purchases = $purchases;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCartItems()
+    {
+        return $this->cartItems;
+    }
+
+    /**
+     * @param mixed $cartItems
+     */
+    public function setCartItems($cartItems): void
+    {
+        $this->cartItems = $cartItems;
     }
 
     /**

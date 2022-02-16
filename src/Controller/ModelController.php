@@ -224,14 +224,14 @@ class ModelController extends AbstractController
              $element = getcwd() . "\models\\textures\\" . $el;
              return $this->file($element);
          }, array_slice($fileNames, 2));*/
-        $fileNames = scandir(getcwd() . "\models\\textures");
+       /* $fileNames = scandir(getcwd() . "\models\\textures");
         $files = array_map(function ($el) {
             $element = getcwd() . "\models\\textures\\" . $el;
             return $this->file($element);
         }, array_slice($fileNames, 2));
-        return $this->json($files);
-        /*$file = $this->file(getcwd() . "\models\\chair\\Eames_FBX.fbx");
-        */
+        return $this->json($files);*/
+        $file = $this->file(getcwd() . "\models\\chair\\Eames_FBX.fbx");
+        return $this->json([$file]);
     }
 
     /**
