@@ -246,12 +246,9 @@ class Model
         return $this->purchaseCount;
     }
 
-    /**
-     * @param int $purchaseCount
-     */
-    public function setPurchaseCount(int $purchaseCount): void
+    public function setPurchaseCount(): void
     {
-        $this->purchaseCount = $this->purchaseCount + 1;
+        $this->purchaseCount = $this->getPurchaseCount() + 1;
     }
 
     /**

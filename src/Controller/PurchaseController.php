@@ -2,7 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\{Model, Purchase, User};
+use App\DTO\PurchaseDTO;
+use App\Entity\{Model, Purchase, Texture, TexturePurchase, User};
 use Doctrine\ORM\{NonUniqueResultException, NoResultException};
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,32 +16,68 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class PurchaseController extends AbstractController
 {
+    public function getUserFromToken(Request $request, JWTTokenManagerInterface $tokenManager)
+    {
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $tokenManager->parse($token);
+        $ownerEmail = $decodedToken["username"];
+        return $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $ownerEmail]);
+    }
+
+    /**
+     * @Route("/", methods={"GET"})
+     */
+    public function getPurchases(Request $request, JWTTokenManagerInterface $tokenManager)
+    {
+        $user = $this->getUserFromToken($request, $tokenManager);
+        if (!$user) {
+            return $this->json(['code' => 403, 'message' => 'Not Authorized!'], 403);
+        }
+        $em = $this->getDoctrine();
+        $texturePurchases = $em->getRepository(TexturePurchase::class)->findBy(['user' => $user->getId()]);
+        $modelPurchases = $em->getRepository(Purchase::class)->findBy(['user' => $user->getId()]);
+        $purchases = [];
+        if (count($texturePurchases) > 0) {
+            foreach ($texturePurchases as $texturePurchase) {
+                $texture = $this->getDoctrine()->getRepository(Texture::class)->findOneBy(
+                    ['id' => $texturePurchase->getTexture()]
+                );
+                $purchases[] = new PurchaseDTO($texture->getName(), "texture", $texture->getPrice(), $texture->getId());
+            }
+        }
+        if (count($modelPurchases) > 0) {
+            foreach ($modelPurchases as $modelPurchase) {
+                $model = $this->getDoctrine()->getRepository(Model::class)->findOneBy(
+                    ['id' => $modelPurchase->getModel()]
+                );
+                $purchases[] = new PurchaseDTO($model->getName(), "model", $model->getPrice(), $model->getId());
+            }
+        }
+        return $this->json(['code' => 200, 'message' => $purchases]);
+    }
+
     /**
      * @Route("/", methods={"POST"})
      */
     public function index(Request $request, JWTTokenManagerInterface $tokenManager): Response
     {
-
         $queryParams = $request->query->all();
         $em = $this->getDoctrine();
         $model = $em->getRepository(Model::class)->findOneBy(['id' => $queryParams['model']]);
         if (!$model) {
             return $this->json(['code' => 404, 'message' => 'Model wasn\'t found']);
         }
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        $decodedToken = $tokenManager->parse($token);
-        $ownerEmail = $decodedToken["username"];
-        $user = $em->getRepository(User::class)->findOneBy(['email' => $ownerEmail]);
-        if(!$user){
-            return $this->json(['code' => 404, 'message' => 'Entity not found!']);
+        $user = $this->getUserFromToken($request, $tokenManager);
+        if (!$user) {
+            return $this->json(['code' => 403, 'message' => 'Not Authorized!'], 403);
         }
         $purchase = new Purchase($user, $model);
         $manager = $em->getManager();
         try {
             $manager->persist($purchase);
             $manager->flush();
-        } catch (\Exception $exception){
-            if (str_contains($exception, "Unique violation")){
+        } catch (\Exception $exception) {
+            if (str_contains($exception, "Unique violation")) {
                 return $this->json(['code' => 409, 'message' => 'Already purchased']);
             }
         }
@@ -50,8 +87,13 @@ class PurchaseController extends AbstractController
     /**
      * @Route("/{id}", methods={"POST"})
      */
-    public function addRating(?Model $model = null, Request $request, int $id, ValidatorInterface $validator, JWTTokenManagerInterface $tokenManager): Response
-    {
+    public function addRating(
+        ?Model $model = null,
+        Request $request,
+        int $id,
+        ValidatorInterface $validator,
+        JWTTokenManagerInterface $tokenManager
+    ): Response {
         if (!$model) {
             return $this->json(['code' => 404, 'message' => 'Model wasn\'t found']);
         }
@@ -70,28 +112,5 @@ class PurchaseController extends AbstractController
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->json("success");
-    }
-
-    /**
-     * @Route("/{id}", methods={"GET"})
-     */
-    public function getRating(?Model $model = null, int $id)
-    {
-        if (!$model) {
-            return $this->json(['code' => 404, 'message' => 'Model wasn\'t found']);
-        }
-        $query = $this->getDoctrine()->getRepository(Purchase::class);
-        try {
-            $count = $query->createQueryBuilder('p')
-                ->select('avg(p.rating)')
-                ->where('p.model = :id')
-                ->setParameter('id', $id)
-                ->getQuery()->getSingleScalarResult();
-            return $this->json(['code' => 200, 'message' => $count]);
-        } catch (NoResultException $e) {
-            return $this->json(['code' => 404, 'message' => "No result!"]);
-        } catch (NonUniqueResultException $e) {
-            return $this->json(['code' => 400, 'message' => "Not unique!"]);
-        }
     }
 }

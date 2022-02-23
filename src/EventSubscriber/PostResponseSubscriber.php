@@ -4,11 +4,8 @@ namespace App\EventSubscriber;
 
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
+
 
 class PostResponseSubscriber implements EventSubscriberInterface
 {
@@ -19,37 +16,35 @@ class PostResponseSubscriber implements EventSubscriberInterface
         $this->tokenManager = $tokenManager;
     }
 
-    public function postResponse(ResponseEvent $event)
+    public function deleteFilesInFolder(string $commonPath): void
     {
-        if (str_contains($event->getRequest()->getUri(), "/api/texture/")) {
-            $commonPath = getcwd() . "\\models\\textures\\";
-            $folderNames = array_slice(scandir($commonPath), 2);
-            if (count($folderNames) > 0) {
-                foreach ($folderNames as $folderName) {
-                    $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
-                    foreach ($fileNames as $fileName) {
-                        unlink($commonPath . "\\" . $folderName . "\\" . $fileName);
-                    }
-                    rmdir($commonPath . "\\" . $folderName);
+        $folderNames = array_slice(scandir($commonPath), 2);
+        if (count($folderNames) > 0) {
+            foreach ($folderNames as $folderName) {
+                $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
+                foreach ($fileNames as $fileName) {
+                    unlink($commonPath . "\\" . $folderName . "\\" . $fileName);
                 }
+                rmdir($commonPath . "\\" . $folderName);
             }
         }
     }
-
-    public function processException(ExceptionEvent $event)
+    public function terminateEvent(TerminateEvent $event)
     {
-        if ($event->getThrowable() instanceof AccessDeniedHttpException) {
-            $event->setResponse(
-                new JsonResponse(['code' => 403, 'message' => $event->getThrowable()->getMessage()])
-            );
+        if (str_contains($event->getRequest()->getUri(), "/api/texture/")) {
+            $commonPath = getcwd() . "\\textures\\";
+            $this->deleteFilesInFolder($commonPath);
+        }
+        elseif (str_contains($event->getRequest()->getUri(), "/api/model/")) {
+            $commonPath = getcwd() . "\\models\\";
+            $this->deleteFilesInFolder($commonPath);
         }
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            'kernel.response' => 'postResponse',
-            KernelEvents::EXCEPTION => 'processException',
+            'kernel.terminate' => 'terminateEvent'
         ];
     }
 }

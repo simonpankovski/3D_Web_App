@@ -21,7 +21,6 @@ class ModelController extends AbstractController
     private $tokenManager;
     private $serializer;
     private $entityManager;
-
     public function __construct(
         JWTTokenManagerInterface $tokenManager,
         EntityManagerInterface $entityManager,
@@ -138,7 +137,8 @@ class ModelController extends AbstractController
         )->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
         if ($query > 0) {
             return $this->json(
-                ['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!'], 400
+                ['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!'],
+                400
             );
         }
         $tags = array_key_exists("tags", $requestBody) ? $requestBody["tags"] : null;
@@ -188,50 +188,74 @@ class ModelController extends AbstractController
      */
     public function show(?Model $model = null, JWTTokenManagerInterface $jwtManager, Request $request): Response
     {
-        /* if (!$model) {
-             return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
-         }
-         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-         $decodedToken = $jwtManager->parse($token);
-         $decodedJson = json_decode(
-             file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
-             true
-         );
-         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
-         $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);*/
-        /*if($purchase == null) {
-            return $this->json(["code" => 403, "Forbidden!"], 403);
-        }*/
-        /*$storage = new StorageClient([
+        if (!$model) {
+            return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
+        }
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $jwtManager->parse($token);
+        $decodedJson = json_decode(
+            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            true
+        );
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
+        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(
+            ['user' => $user->getId(), 'model' => $model->getId()]
+        );
+        $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
         $storage->registerStreamWrapper();
         $bucket = $storage->bucket('polybase-files');
-        $bucket->object($model->getId() . "." . $model->getExtensions()[0])->downloadToFile("public.zip");
-        $zip = new ZipArchive;
-        $pathToZip = getcwd() . "\public.zip";
-        if ($zip->open($pathToZip) === TRUE) {
-            mkdir(getcwd() . "\\models");
-            $zip->extractTo(getcwd() . "\\models");
-            $zip->close();
-            return $this->json("succ");
+        $fileName = bin2hex(random_bytes(20));
+        mkdir(getcwd() . "\\models\\" . $fileName);
+        $bucket->object($model->getId() . "." . $model->getExtensions()[0])->downloadToFile(
+            getcwd() . "\\models\\" . $fileName . "\\public.zip"
+        );
+        $commonPath = getcwd() . "\\models\\" . $fileName;
+        if ($purchase == null || $request->query->has("browse")) {
+            $zip = new ZipArchive;
+            $pathToZip = $commonPath . "\\public.zip";
+            if ($zip->open($pathToZip) === true) {
+                $zip->extractTo($commonPath);
+                $zip->close();
+                unlink($commonPath . "\\public.zip");
+            } else {
+                return $this->json("not");
+            }
+            $fileNames = array_slice(scandir($commonPath), 2);
+            $files = array_map(function ($el) use ($commonPath) {
+                $element = $commonPath . "\\" . $el;
+                return $this->file($element);
+            }, $fileNames);
+            /*$modelName = preg_grep ('/\.fbx/i', $fileNames);
+            $name = reset($modelName);
+            $file = $this->file($commonPath . "\\" . $name);*/
+            ini_set('memory_limit', '-1');
+            return $this->json([$files, $fileName]);
         } else {
-            return $this->json("not");
-        }*/
-        //return $this->file(getcwd() . "\public.zip");
-        /* $fileNames = scandir(getcwd() . "\models\\textures");
-         $files = array_map(function ($el){
-             $element = getcwd() . "\models\\textures\\" . $el;
-             return $this->file($element);
-         }, array_slice($fileNames, 2));*/
-       /* $fileNames = scandir(getcwd() . "\models\\textures");
-        $files = array_map(function ($el) {
-            $element = getcwd() . "\models\\textures\\" . $el;
+            return $this->file($commonPath . "\\public.zip");
+        }
+    }
+
+    /**
+     * @Route("/textures/{id}", methods={"GET"})
+     */
+    public function getTextures(Request $request): JsonResponse
+    {
+        $targetDir = getcwd() . "\\models\\" . $request->query->get("key");
+        if (!is_dir($targetDir)){
+            return $this->json(['code' => 404, 'message' => 'Not Found!']);
+        }
+        $filesInModelsDir = scandir(getcwd() . "\\models\\" . $request->query->get("key"));
+        $imageNames = array_filter($filesInModelsDir, function ($el) {
+            return str_contains($el, 'png') || str_contains($el, 'jpg');
+        });
+        //$fileNames = scandir();
+        $files = array_map(function ($el) use ($targetDir) {
+            $element = $targetDir . "\\" . $el;
             return $this->file($element);
-        }, array_slice($fileNames, 2));
-        return $this->json($files);*/
-        $file = $this->file(getcwd() . "\models\\chair\\Eames_FBX.fbx");
-        return $this->json([$file]);
+        }, $imageNames);
+        return $this->json($files);
     }
 
     /**

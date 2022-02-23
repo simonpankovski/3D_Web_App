@@ -202,12 +202,12 @@ class TextureController extends AbstractController implements PostResponse
         $storage->registerStreamWrapper();
         $bucket = $storage->bucket('polybase-files');
         $zipName = bin2hex(random_bytes(20));
-        $zipPath = getcwd() . "\\models\\textures\\" . $zipName . ".zip";
+        $zipPath = getcwd() . "\\textures\\" . $zipName . ".zip";
         $bucket->object("textures/" . $texture->getId() . ".zip")->downloadToFile($zipPath);
         $zip = new ZipArchive;
 
         if ($zip->open($zipPath) === TRUE) {
-            $extractPath = getcwd() . "\\models\\textures\\" . $zipName;
+            $extractPath = getcwd() . "\\textures\\" . $zipName;
             mkdir($extractPath);
             $zip->extractTo($extractPath);
             $zip->close();

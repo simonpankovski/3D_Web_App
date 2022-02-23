@@ -93,6 +93,6 @@ class RegistrationController extends AbstractController
         $user->setIsVerified(true);
         $em->flush();
 
-        return $this->json('succ');
+        return $this->redirect('http://localhost:8080');
     }
 }
