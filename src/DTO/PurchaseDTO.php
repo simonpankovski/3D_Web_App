@@ -8,19 +8,38 @@ class PurchaseDTO
     private $type;
     private $price;
     private $objectId;
+    private $rating;
 
     /**
      * @param $name
      * @param $type
      * @param $price
      * @param $objectId
+     * @param $rating
      */
-    public function __construct($name, $type, $price, $objectId)
+    public function __construct($name, $type, $price, $objectId, $rating)
     {
         $this->name = $name;
         $this->type = $type;
         $this->price = $price;
         $this->objectId = $objectId;
+        $this->rating = $rating;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRating()
+    {
+        return $this->rating;
+    }
+
+    /**
+     * @param mixed $rating
+     */
+    public function setRating($rating): void
+    {
+        $this->rating = $rating;
     }
 
     /**

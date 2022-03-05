@@ -95,35 +95,7 @@ class ModelController extends AbstractController
         JWTTokenManagerInterface $jwtManager,
         ValidatorInterface $validator
     ): Response {
-        $files = $request->files->get("format");
-        if ($files == null) {
-            return $this->json(['code' => 400, 'message' => 'No files were attached'], 400);
-        }
-        $zip = new ZipArchive();
-        $requestBody = $request->request->all();
-        $file = "";
         $modelRepo = $this->entityManager->getRepository(Model::class);
-        $extensionsArray = [];
-        if (sizeof($files) === 1) {
-            if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
-                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!'], 400);
-            } else {
-                $file = $files[0];
-            }
-        } else {
-            if ($zip->open('test_new.zip', ZipArchive::CREATE) === true) {
-                foreach ($files as $file) {
-                    $zip->addFile($file->getPathName(), $file->getClientOriginalName());
-                    $extensionsArray[] = pathinfo($file->getClientOriginalName())["extension"];
-                }
-                $file = $zip->filename;
-                $zip->close();
-                $file = new File($file);
-            }
-        }
-
-        array_unshift($extensionsArray, "zip");
-        $model = new Model();
         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
         $decodedToken = $jwtManager->parse($token);
         $decodedJson = json_decode(
@@ -141,6 +113,36 @@ class ModelController extends AbstractController
                 400
             );
         }
+        $files = $request->files->get("format");
+
+        if ($files == null) {
+            return $this->json(['code' => 400, 'message' => 'No files were attached'], 400);
+        }
+        $zip = new ZipArchive();
+        $requestBody = $request->request->all();
+        $file = "";
+        $extensionsArray = [];
+        if (sizeof($files) === 1) {
+            if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
+                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!'], 400);
+            } else {
+                $file = $files[0];
+            }
+        } else {
+            $zipName = bin2hex(random_bytes(20)) . ".zip";
+            if ($zip->open($zipName, ZipArchive::CREATE) === true) {
+                foreach ($files as $file) {
+                    $zip->addFile($file->getPathName(), $file->getClientOriginalName());
+                    $extensionsArray[] = pathinfo($file->getClientOriginalName())["extension"];
+                }
+                $file = $zip->filename;
+                $zip->close();
+                $file = new File($file);
+            }
+        }
+        array_unshift($extensionsArray, "zip");
+        $model = new Model();
+
         $tags = array_key_exists("tags", $requestBody) ? $requestBody["tags"] : null;
         $tags = $this->entityManager->getRepository(Tag::class)->findBy(['name' => json_decode($tags, true)]);
 
@@ -155,6 +157,7 @@ class ModelController extends AbstractController
         $model->setOwner($user);
         $errors = $validator->validate($model);
         if (count($errors) > 0) {
+            unlink($file);
             return $this->json(['code' => 400, 'message' => "Model is not valid!"], 400);
         }
         $this->entityManager->persist($model);
@@ -179,7 +182,7 @@ class ModelController extends AbstractController
             file_get_contents($file),
             ["name" => $modelName]
         );
-
+        unlink($file);
         return $this->json(["code" => 200, "message" => "Success!"]);
     }
 

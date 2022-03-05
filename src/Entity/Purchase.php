@@ -26,6 +26,11 @@ class Purchase
     protected $model;
 
     /**
+     * @ORM\Column(type="float", nullable="true")
+     */
+    private $rating = 0;
+
+    /**
      * @param $user
      * @param $model
      */
@@ -33,6 +38,23 @@ class Purchase
     {
         $this->user = $user;
         $this->model = $model;
+        $this->rating = 0;
+    }
+
+    /**
+     * @return float
+     */
+    public function getRating(): float
+    {
+        return $this->rating;
+    }
+
+    /**
+     * @param float $rating
+     */
+    public function setRating(float $rating): void
+    {
+        $this->rating = $rating;
     }
 
     /**

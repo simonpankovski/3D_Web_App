@@ -28,7 +28,7 @@ class Texture
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank
-     * @Assert\Length(min=5, max=255)
+     * @Assert\Length(min=4, max=255)
      */
     private $name;
 
@@ -50,7 +50,7 @@ class Texture
     private $purchaseCount = 0;
 
     /**
-     * @ORM\Column(type="integer", options={"default": 0})
+     * @ORM\Column(type="float", options={"default": 0})
      */
     private $rating = 0;
 
@@ -200,10 +200,10 @@ class Texture
     }
 
     /**
-     * @param int $rating
+     * @param float $rating
      */
-    public function setRating(int $rating): void
+    public function setRating(float $rating): void
     {
-        $this->rating = $this->rating + $rating;
+        $this->rating = $rating;
     }
 }

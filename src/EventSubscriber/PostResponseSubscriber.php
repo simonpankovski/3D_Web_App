@@ -18,6 +18,9 @@ class PostResponseSubscriber implements EventSubscriberInterface
 
     public function deleteFilesInFolder(string $commonPath): void
     {
+        if(!is_dir($commonPath)){
+            mkdir(getcwd() . "\\models");
+        }
         $folderNames = array_slice(scandir($commonPath), 2);
         if (count($folderNames) > 0) {
             foreach ($folderNames as $folderName) {

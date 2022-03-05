@@ -27,6 +27,10 @@ class TexturePurchase
     protected $texture;
 
     /**
+     * @ORM\Column(type="float", nullable="true")
+     */
+    protected $rating = 0;
+    /**
      * @param $user
      * @param $texture
      */
@@ -34,6 +38,23 @@ class TexturePurchase
     {
         $this->user = $user;
         $this->texture = $texture;
+        $this->rating = 0;
+    }
+
+    /**
+     * @return float
+     */
+    public function getRating(): float
+    {
+        return $this->rating;
+    }
+
+    /**
+     * @param float $rating
+     */
+    public function setRating(float $rating): void
+    {
+        $this->rating = $rating;
     }
 
     /**
