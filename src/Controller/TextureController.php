@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\PostResponse;
+use App\Entity\Purchase;
 use App\Entity\Texture;
+use App\Entity\TexturePurchase;
 use App\Entity\User;
 use App\Repository\TextureRepository;
 use App\Service\TextureDTOService;
@@ -15,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -42,13 +45,13 @@ class TextureController extends AbstractController implements PostResponse
     private function getObjectFromBucket($texture): StorageObject
     {
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         $fileName = $texture->getId() . "." . "zip";
         return $bucket->object("texture/" . $fileName);
     }
@@ -75,13 +78,13 @@ class TextureController extends AbstractController implements PostResponse
         $results = $textureRepository->findAllAndPaginate($index, $itemsPerPage, $category);
         $resultDTO = [];
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         foreach ($results as $res) {
             $options = ['prefix' => "textures/thumbnails/" . $res->getId()];
             $thumbnailLinks = [];
@@ -152,13 +155,13 @@ class TextureController extends AbstractController implements PostResponse
         $this->entityManager->persist($texture);
         $this->entityManager->flush();
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         foreach ($request->files->get("thumbnails") as $key => $value) {
             $extension = pathinfo($value->getClientOriginalName())["extension"];
             if ($extension == "jpg" || $extension == "png") {
@@ -180,19 +183,25 @@ class TextureController extends AbstractController implements PostResponse
     /**
      * @Route("/{id}", name="texture_show", methods={"GET"})
      */
-    public function show(?Texture $texture = null, JWTTokenManagerInterface $jwtManager, Request $request): JsonResponse
+    public function show(?Texture $texture = null, JWTTokenManagerInterface $jwtManager, Request $request): Response
     {
         if (!$texture) {
-             return $this->json(['code' => 404, 'message' => 'Texture not found!'], 404);
-         }
-         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-         $decodedToken = $jwtManager->parse($token);
-         $decodedJson = json_decode(
-             file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
-             true
-         );
-         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
-         //$purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(['user'=> $user->getId(), 'model' => $model->getId()]);
+            return $this->json(['code' => 404, 'message' => 'Texture not found!'], 404);
+        }
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $jwtManager->parse($token);
+        $decodedJson = json_decode(
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
+            true
+        );
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
+        $purchase = $this->entityManager->getRepository(TexturePurchase::class)->findOneBy(
+            ['user' => $user->getId(), 'texture' => $texture->getId()]
+        );
+        $downloadedZips = array_slice(scandir(getcwd() . "\\downloads\\"), 2);
+        foreach ($downloadedZips as $zip) {
+            unlink(getcwd() . "\\downloads\\" . $zip);
+        }
         /*if($purchase == null) {
             return $this->json(["code" => 403, "Forbidden!"], 403);
         }*/
@@ -200,13 +209,16 @@ class TextureController extends AbstractController implements PostResponse
                                          'keyFile' => $decodedJson
                                      ]);
         $storage->registerStreamWrapper();
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         $zipName = bin2hex(random_bytes(20));
-        $zipPath = getcwd() . "\\textures\\" . $zipName . ".zip";
+        $zipPath = getcwd() . "\\downloads\\" . $zipName . ".zip";
         $bucket->object("textures/" . $texture->getId() . ".zip")->downloadToFile($zipPath);
         $zip = new ZipArchive;
+        if ($purchase!=null && !$request->query->has("browse")){
+            return $this->file($zipPath);
+        }
 
-        if ($zip->open($zipPath) === TRUE) {
+        if ($zip->open($zipPath) === true) {
             $extractPath = getcwd() . "\\textures\\" . $zipName;
             mkdir($extractPath);
             $zip->extractTo($extractPath);

@@ -37,10 +37,12 @@ class PostResponseSubscriber implements EventSubscriberInterface
         if (str_contains($event->getRequest()->getUri(), "/api/texture/")) {
             $commonPath = getcwd() . "\\textures\\";
             $this->deleteFilesInFolder($commonPath);
+
         }
         elseif (str_contains($event->getRequest()->getUri(), "/api/model/")) {
             $commonPath = getcwd() . "\\models\\";
             $this->deleteFilesInFolder($commonPath);
+
         }
     }
 

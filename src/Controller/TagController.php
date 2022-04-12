@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
-use App\{Entity\Tag, Repository\ModelRepository};
+use App\{Entity\Tag, Entity\User, Repository\ModelRepository};
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\{HttpFoundation\JsonResponse, HttpFoundation\Request, HttpFoundation\Response};
+use Symfony\Component\{HttpFoundation\JsonResponse,
+    HttpFoundation\Request,
+    HttpFoundation\Response,
+    Validator\Validator\ValidatorInterface};
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\{Encoder\JsonEncoder,
     Normalizer\AbstractNormalizer,
@@ -29,6 +33,19 @@ class TagController extends AbstractController //implements HasAdminRole
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
     }
+
+    public function checkIsAdmin(Request $request, JWTTokenManagerInterface $tokenManager): bool
+    {
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $tokenManager->parse($token);
+
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
+        if ($user == null || !in_array('ADMIN_ROLE', $user->getRoles())) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @Route("/", name="tag_index", methods={"GET"})
      */
@@ -45,7 +62,7 @@ class TagController extends AbstractController //implements HasAdminRole
         $serializer = new Serializer([$normalizer], [$encoder]);
         $tags = $this->entityManager->getRepository(Tag::class)->findAll();
         $tagNames = [];
-        foreach ($tags as $tag){
+        foreach ($tags as $tag) {
             $tagNames[] = $tag->getName();
         }
         return new JsonResponse($serializer->normalize($tagNames, 'json'));
@@ -54,8 +71,11 @@ class TagController extends AbstractController //implements HasAdminRole
     /**
      * @Route("/", name="tag_new", methods={"POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, JWTTokenManagerInterface $tokenManager, ValidatorInterface $validator): Response
     {
+        if (!$this->checkIsAdmin($request, $tokenManager)) {
+            return $this->json(['code' => 401, 'message' => 'Unauthorized!'], 401);
+        }
         $tag = new Tag();
         $this->serializer->deserialize(
             $request->getContent(),
@@ -66,6 +86,17 @@ class TagController extends AbstractController //implements HasAdminRole
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['models']
             ]
         );
+        if($this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tag->getName()]) != null ) {
+            return $this->json(['code' => 400, 'message' => 'A tag already exists with that name!'], 400);
+        }
+        $errors = $validator->validate($tag);
+        if (count($errors) > 0){
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return $this->json(['code' => 400, 'message' => $errorMessages], 400);
+        }
         $this->entityManager->persist($tag);
         $this->entityManager->flush();
         return $this->json(['code' => 200, 'message' => 'Created!']);

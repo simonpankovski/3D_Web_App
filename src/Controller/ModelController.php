@@ -34,13 +34,13 @@ class ModelController extends AbstractController
     private function getObjectFromBucket($model): StorageObject
     {
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         $fileName = $model->getId() . "." . $model->getExtensions();
         return $bucket->object($fileName);
     }
@@ -68,13 +68,13 @@ class ModelController extends AbstractController
         $results = $modelRepository->findAllAndPaginate($index, $itemsPerPage, $category);
         $modelDTOArray = [];
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         foreach ($results as $result) {
             $options = ['prefix' => "thumbnails/" . $result->getId()];
             $thumbnailLinks = [];
@@ -99,7 +99,7 @@ class ModelController extends AbstractController
         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
         $decodedToken = $jwtManager->parse($token);
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
 
@@ -168,7 +168,7 @@ class ModelController extends AbstractController
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         foreach ($request->files->get("thumbnails") as $key => $value) {
             $extension = pathinfo($value->getClientOriginalName())["extension"];
             if ($extension == "jpg" || $extension == "png") {
@@ -197,7 +197,7 @@ class ModelController extends AbstractController
         $token = preg_split("/ /", $request->headers->get("authorization"))[1];
         $decodedToken = $jwtManager->parse($token);
         $decodedJson = json_decode(
-            file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")),
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
         );
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
@@ -208,7 +208,7 @@ class ModelController extends AbstractController
                                          'keyFile' => $decodedJson
                                      ]);
         $storage->registerStreamWrapper();
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         $fileName = bin2hex(random_bytes(20));
         mkdir(getcwd() . "\\models\\" . $fileName);
         $bucket->object($model->getId() . "." . $model->getExtensions()[0])->downloadToFile(

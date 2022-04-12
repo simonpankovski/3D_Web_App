@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity
@@ -13,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Tag
 {
     use Timestamp;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -22,6 +24,7 @@ class Tag
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
+     * @Assert\Length(min = 1, max = 30, minMessage = "The tag name should be at least 1 character long", maxMessage = "The tag name cannot be longer than 30 characters")
      */
     private $name;
 

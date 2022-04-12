@@ -12,8 +12,6 @@ use App\Entity\User;
 use App\Repository\CartRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Stripe\Charge;
-use Stripe\Checkout\Session;
-use Stripe\PaymentIntent;
 use Stripe\Stripe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

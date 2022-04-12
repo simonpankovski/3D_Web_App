@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "luminous-lambda-343512",
+  "private_key_id": "4ca64e329fd466f112709fd21708404e4d51905b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCrnp6HRYx6QYcN\n0JGVIdJXr15BZYcmqdK/Q9EeIBymGlsFIAWuT65CI6wuAA4UdEX0z9X8PGKlhN15\npLjRH/CWFy/9hrG/NO1cOw76+9I4itxtJb7Bb9D4bKft2FVaeInDFlTFlsq4iZtq\n2xyB01s9pZQxeOI+c5v4ggJW/fxYeeJH8eFRBwJJ+/kVpVmkcOyuTUo58Yq30k8N\n6rcKvgXWG4KqrhXaqyevosK+M3fkc3RSSneKIQwD/faJCTtSqapRZ/hM/6uFaFdV\ng5oxx8iRswe+0kUkLDCdR4tZJ3wzM7tBcw/lpcF7B1HCtUoqfxUQbcnxUySWra5X\nZEpFphpNAgMBAAECggEAD7abvDX1eUIjq/OjSLzKhgXEAwfZOoSFC8cZUAFPrjOu\njscSThX0lhCvFJ0jrOLCfvpClPAwdgg2wQsAcwFSJWPlHHjnMGMXsoCjy/4fjtbD\n/OheUVa8Eurb606J7hkoP+j9BQRb9k5/IOcD8q0X5wqQiYEQcfhi2PuKXE2v+6ey\njU+unxwmu6kwYJItHwETiXrNpoIKuEqQGHXscNPB0k8rKUkRf3RJDEsOJI/GKKno\nb/zL73De39LOSHxMKO+1TDcanbNq6dLoTDS+r/Wk8zpzFEqDJ7a9EfAIa0eNpIle\nTj/vvgY1Q01hBgFpPODoo9EQLwo9MgqSIXOvYDpyzwKBgQDtmSwXra2wnoollCKv\nj4D4eva3BnJI4O5oYqh2J8whZapRIzQWbyk4ycKdBwrMCjLdLmf0RmRiZuI5PWJa\nuO1dyxHgWkqgFYbknnkzmZnw6K7fc3zZvey7QceyDYTBvFJCekshGOuixdsemIrJ\n8uzvCEkzuHmsyp0LxfZQiVtAXwKBgQC46Uvhc/W6iyxeeEr7F2HMdRw00Sv4FP7j\n6ox4W/NLO7CMqNnDq1c/p+crCxoili4ywiI2SktFmmQ9qAkPb0UhgJS67fLmvIhX\nTJKxT2cqBtuoMCHMqWIA4S4MZHz0GTEsV4n5FUyR9i9oMyu01GTsxK8SPUS2hXI4\nNT4Se9t00wKBgAH0P4uWTxZjx2kVtc9R09K3WC4bLHdy+iL7pL0MCL7BkkwGiRgi\nI+mmpyYZd7pD3zU4e3xj09GHXRbxbUyntrQNxoDc3T5BzxE0SHTnL3/uufl2frFf\nwYGswdKyD8R0Iw0O6m1EQjPdgrbWtFWC3PX+UHPPcZi9Ndtx7lutNYXrAoGAK127\niBJ0DN3a+ATqQN0I+LR2ewSbdUEnTjiR3SBjfL9w9mwbNkKW4bz1AClIZdgm2Yyi\nDW17HcXJwJQKG+6SnfrT5ssrbmXE7ARvWtoubbLSDS3Mn30SGPa2n/1pOK431Bhr\nqVkPbiP4lk158JznVogCLxrjZJMDaJ9EAX2+yDUCgYBRkSQ+dXBP5ttCO0asvInP\nMJOYzKf9dQyRuqXx8068GBv/YunQtx3xShGOoezmjnBBrPnHR+qBgbaXy11onzD3\nSaXwoF7t+jZa6qxixW+Ua1ou+Kr3tn0cGl5jCIRApJcjTjfX8uW6+ABuK0IWZ5g2\nGzwQ1DQESEpaFFWnmMj10A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "storage@luminous-lambda-343512.iam.gserviceaccount.com",
+  "client_id": "111951522392713957170",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/storage%40luminous-lambda-343512.iam.gserviceaccount.com"
+}

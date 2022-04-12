@@ -19,12 +19,13 @@ class MailTesterController extends AbstractController
      */
     public function index(Request $request, MailerInterface $mailer, UserRepository $userRepository, JWTTokenManagerInterface $JWTManager): JsonResponse
     {
+
         $decodedJson = json_decode(file_get_contents(realpath("../config/json_credentials/savvy-octagon-334317-81205c560b3e.json")), true);
         //$token = preg_split("/ /", $request->headers->get("authorization"))[1];
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
                                      ]);
-        $bucket = $storage->bucket('polybase-files');
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
         $object = $bucket->object('57-couch-obj.rar');
         $object->downloadToFile('57-couch-obj.rar');
 
