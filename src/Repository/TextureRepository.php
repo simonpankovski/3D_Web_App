@@ -19,12 +19,16 @@ class TextureRepository extends ServiceEntityRepository
         parent::__construct($registry, Texture::class);
     }
 
-    public function findAllAndPaginate($index, $pageSize, $category): array
+    public function findAllAndPaginate($index, $pageSize, $category, $searchTerm): array
     {
         $query = $this->createQueryBuilder('t');
         if($category != null){
             $query->where('t.category = :cat')
                 ->setParameter('cat', $category);
+        }
+        if ($searchTerm != null) {
+            $pattern = strtolower($searchTerm);
+            $query->andWhere('LOWER(m.name) LIKE :name')->setParameter('name', '%' . $pattern . '%');
         }
         $query->orderBy('t.id', 'ASC')
             ->setFirstResult($index)

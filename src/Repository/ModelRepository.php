@@ -19,17 +19,20 @@ class ModelRepository extends ServiceEntityRepository
         parent::__construct($registry, Model::class);
     }
 
-    public function findAllAndPaginate($index, $pageSize, $category): array
+    public function findAllAndPaginate($index, $pageSize, $category, $searchTerm): array
     {
         $query = $this->createQueryBuilder('m');
-            if($category != null){
-                $query->where('m.category = :cat')
-                    ->setParameter('cat', $category);
-            }
-            $query->orderBy('m.id', 'ASC')
+        if ($category != null) {
+            $query->where('m.category = :cat')
+                ->setParameter('cat', $category);
+        }
+        if ($searchTerm != null) {
+            $pattern = strtolower($searchTerm);
+            $query->andWhere('LOWER(m.name) LIKE :name')->setParameter('name', '%' . $pattern . '%');
+        }
+        $query->orderBy('m.id', 'ASC')
             ->setFirstResult($index)
-            ->setMaxResults($pageSize)
-        ;
+            ->setMaxResults($pageSize);
         return $query->getQuery()
             ->getResult();
     }

@@ -69,13 +69,14 @@ class TextureController extends AbstractController implements PostResponse
         $page = array_key_exists('page', $queryParams) ? $queryParams['page'] : 1;
         $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 5;
         $category = array_key_exists('category', $queryParams) ? $queryParams['category'] : null;
+        $searchTerm = array_key_exists('search', $queryParams) ? $queryParams['search'] : null;
         $totalTextures = $textureRepository->countTextures($category);
         if (!is_numeric($page) || (int)$page < 1 || !is_numeric($size) || (int)$size < 1) {
             return $this->json(["code" => 400, "message" => "Invalid query parameters provided!"], 400);
         }
         $itemsPerPage = in_array((int)$size, $permittedSizes) ? (int)$size : 10;
         $index = ((int)$page - 1) * $itemsPerPage;
-        $results = $textureRepository->findAllAndPaginate($index, $itemsPerPage, $category);
+        $results = $textureRepository->findAllAndPaginate($index, $itemsPerPage, $category, $searchTerm);
         $resultDTO = [];
         $decodedJson = json_decode(
             file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
