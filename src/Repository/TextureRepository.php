@@ -28,7 +28,7 @@ class TextureRepository extends ServiceEntityRepository
         }
         if ($searchTerm != null) {
             $pattern = strtolower($searchTerm);
-            $query->andWhere('LOWER(m.name) LIKE :name')->setParameter('name', '%' . $pattern . '%');
+            $query->andWhere('LOWER(t.name) LIKE :name')->setParameter('name', '%' . $pattern . '%');
         }
         $query->orderBy('t.id', 'ASC')
             ->setFirstResult($index)

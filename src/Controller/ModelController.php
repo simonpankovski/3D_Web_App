@@ -21,6 +21,7 @@ class ModelController extends AbstractController
     private $tokenManager;
     private $serializer;
     private $entityManager;
+
     public function __construct(
         JWTTokenManagerInterface $tokenManager,
         EntityManagerInterface $entityManager,
@@ -115,7 +116,7 @@ class ModelController extends AbstractController
             );
         }
         $files = $request->files->get("format");
-
+        dd($files);
         if ($files == null) {
             return $this->json(['code' => 400, 'message' => 'No files were attached'], 400);
         }
@@ -123,23 +124,15 @@ class ModelController extends AbstractController
         $requestBody = $request->request->all();
         $file = "";
         $extensionsArray = [];
-        if (sizeof($files) === 1) {
-            if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
-                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!'], 400);
-            } else {
-                $file = $files[0];
+        $zipName = bin2hex(random_bytes(20)) . ".zip";
+        if ($zip->open($zipName, ZipArchive::CREATE) === true) {
+            foreach ($files as $file) {
+                $zip->addFile($file->getPathName(), $file->getClientOriginalName());
+                $extensionsArray[] = pathinfo($file->getClientOriginalName())["extension"];
             }
-        } else {
-            $zipName = bin2hex(random_bytes(20)) . ".zip";
-            if ($zip->open($zipName, ZipArchive::CREATE) === true) {
-                foreach ($files as $file) {
-                    $zip->addFile($file->getPathName(), $file->getClientOriginalName());
-                    $extensionsArray[] = pathinfo($file->getClientOriginalName())["extension"];
-                }
-                $file = $zip->filename;
-                $zip->close();
-                $file = new File($file);
-            }
+            $file = $zip->filename;
+            $zip->close();
+            $file = new File($file);
         }
         array_unshift($extensionsArray, "zip");
         $model = new Model();
@@ -247,7 +240,7 @@ class ModelController extends AbstractController
     public function getTextures(Request $request): JsonResponse
     {
         $targetDir = getcwd() . "\\models\\" . $request->query->get("key");
-        if (!is_dir($targetDir)){
+        if (!is_dir($targetDir)) {
             return $this->json(['code' => 404, 'message' => 'Not Found!']);
         }
         $filesInModelsDir = scandir(getcwd() . "\\models\\" . $request->query->get("key"));

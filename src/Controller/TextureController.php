@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\PostResponse;
-use App\Entity\Purchase;
 use App\Entity\Texture;
 use App\Entity\TexturePurchase;
 use App\Entity\User;
@@ -70,6 +69,7 @@ class TextureController extends AbstractController implements PostResponse
         $size = array_key_exists('size', $queryParams) ? $queryParams['size'] : 5;
         $category = array_key_exists('category', $queryParams) ? $queryParams['category'] : null;
         $searchTerm = array_key_exists('search', $queryParams) ? $queryParams['search'] : null;
+
         $totalTextures = $textureRepository->countTextures($category);
         if (!is_numeric($page) || (int)$page < 1 || !is_numeric($size) || (int)$size < 1) {
             return $this->json(["code" => 400, "message" => "Invalid query parameters provided!"], 400);

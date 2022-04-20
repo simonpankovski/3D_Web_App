@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\RegistrationFormType;
 use App\Security\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -54,7 +53,6 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        // generate a signed url and email it to the user
         $token = $JWTManager->create($user);
         $email = (new TemplatedEmail())
             ->from(new Address('simonpankovski@gmail.com', '3D Web App Bot'))
