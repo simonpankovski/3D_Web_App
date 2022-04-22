@@ -106,6 +106,11 @@ class ModelController extends AbstractController
         );
 
         $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
+        if (!$user->isVerified()) {
+            return $this->json(
+                ['code' => 400, 'message' => 'You must verify your email before being able to upload!']
+            );
+        }
         $query = $modelRepo->createQueryBuilder('m')->select('count(m.id)')->where('m.owner = :owner')->andWhere(
             'm.approved = false'
         )->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
@@ -116,7 +121,6 @@ class ModelController extends AbstractController
             );
         }
         $files = $request->files->get("format");
-        dd($files);
         if ($files == null) {
             return $this->json(['code' => 400, 'message' => 'No files were attached'], 400);
         }
@@ -188,15 +192,24 @@ class ModelController extends AbstractController
         if (!$model) {
             return $this->json(['code' => 404, 'message' => 'Model not found!'], 404);
         }
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        $decodedToken = $jwtManager->parse($token);
+        $purchase = null;
+
+        if ($request->headers->has("authorization")) {
+            $authHeader = preg_split("/ /", $request->headers->get("authorization"));
+            if (sizeof($authHeader) > 1) {
+                $token = $authHeader[1];
+                $decodedToken = $jwtManager->parse($token);
+                $user = $this->entityManager->getRepository(User::class)->findOneBy(
+                    ['email' => $decodedToken['username']]
+                );
+                $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(
+                    ['user' => $user->getId(), 'model' => $model->getId()]
+                );
+            }
+        }
         $decodedJson = json_decode(
             file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
-        );
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decodedToken['username']]);
-        $purchase = $this->entityManager->getRepository(Purchase::class)->findOneBy(
-            ['user' => $user->getId(), 'model' => $model->getId()]
         );
         $storage = new StorageClient([
                                          'keyFile' => $decodedJson
@@ -224,9 +237,6 @@ class ModelController extends AbstractController
                 $element = $commonPath . "\\" . $el;
                 return $this->file($element);
             }, $fileNames);
-            /*$modelName = preg_grep ('/\.fbx/i', $fileNames);
-            $name = reset($modelName);
-            $file = $this->file($commonPath . "\\" . $name);*/
             ini_set('memory_limit', '-1');
             return $this->json([$files, $fileName]);
         } else {

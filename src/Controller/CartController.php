@@ -3,20 +3,18 @@
 namespace App\Controller;
 
 use App\DTO\CartDTO;
-use App\Entity\Cart;
-use App\Entity\Model;
-use App\Entity\Purchase;
-use App\Entity\Texture;
-use App\Entity\TexturePurchase;
-use App\Entity\User;
+use App\{Entity\Cart,
+    Entity\Model,
+    Entity\Purchase,
+    Entity\Texture,
+    Entity\TexturePurchase,
+    Entity\User
+};
 use App\Repository\CartRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Stripe\Charge;
-use Stripe\Stripe;
+use Stripe\{Charge, Stripe};
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\{HttpFoundation\JsonResponse, HttpFoundation\Request, HttpFoundation\Response};
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -82,10 +80,15 @@ class CartController extends AbstractController
     /**
      * @Route ("/count", methods={"GET"})
      */
-    public function countCartItems(Request $request, JWTTokenManagerInterface $tokenManager, CartRepository $cartRepository): JsonResponse
-    {
+    public function countCartItems(
+        Request $request,
+        JWTTokenManagerInterface $tokenManager,
+        CartRepository $cartRepository
+    ): JsonResponse {
         $user = $this->getUserFromToken($request, $tokenManager);
-        $count = $cartRepository->createQueryBuilder("cart")->select("count(cart.id)")->where("cart.user = :user")->setParameter('user', $user->getId())->getQuery()->getSingleScalarResult();
+        $count = $cartRepository->createQueryBuilder("cart")->select("count(cart.id)")->where(
+            "cart.user = :user"
+        )->setParameter('user', $user->getId())->getQuery()->getSingleScalarResult();
         return $this->json(['code' => 200, 'message' => $count]);
     }
 
@@ -93,35 +96,46 @@ class CartController extends AbstractController
      * @Route ("/checkout", methods={"POST"})
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function checkout(Request $request, CartRepository $cartRepository, JWTTokenManagerInterface $tokenManager): JsonResponse
-    {
+    public function checkout(
+        Request $request,
+        CartRepository $cartRepository,
+        JWTTokenManagerInterface $tokenManager
+    ): JsonResponse {
         $YOUR_DOMAIN = 'http://localhost:8080';
         $user = $this->getUserFromToken($request, $tokenManager);
         $cartItems = $cartRepository->findBy(['user' => $user->getId()]);
-        $sum = $cartRepository->createQueryBuilder("cart")->select("sum(cart.price)")->where("cart.user = :id")->setParameter("id", $user->getId())->getQuery()->getSingleScalarResult();
+        $sum = $cartRepository->createQueryBuilder("cart")->select("sum(cart.price)")->where(
+            "cart.user = :id"
+        )->setParameter("id", $user->getId())->getQuery()->getSingleScalarResult();
         $tokenId = json_decode($request->getContent(), true)['token']['id'];
-        Stripe::setApiKey('sk_test_51K4oeOL44p3mSuwW0kRnYZso8dGgAy3ToQqpLn3SyOOZJwGZdrPm4akktxbZcblzqpdYxPEfc7CIvDSdqcY7pzPs00STJvoock');
-        $charge = Charge::create([
-                                             'amount' => $sum*100,
-                                             'currency' => 'usd',
-                                             'description' => 'Total Price',
-                                             'source' => $tokenId,
-                                         ]);
+        Stripe::setApiKey(
+            'sk_test_51K4oeOL44p3mSuwW0kRnYZso8dGgAy3ToQqpLn3SyOOZJwGZdrPm4akktxbZcblzqpdYxPEfc7CIvDSdqcY7pzPs00STJvoock'
+        );
+        Charge::create([
+                                     'amount' => $sum * 100,
+                                     'currency' => 'usd',
+                                     'description' => 'Total Price',
+                                     'source' => $tokenId,
+                                 ]);
         $manager = $this->getDoctrine()->getManager();
-        foreach ($cartItems as $item){
-            if($item->getType() == "texture") {
-                $texture = $this->getDoctrine()->getRepository(Texture::class)->findOneBy(["id" => $item->getObjectId()]);
+        foreach ($cartItems as $item) {
+            if ($item->getType() == "texture") {
+                $texture = $this->getDoctrine()->getRepository(Texture::class)->findOneBy(["id" => $item->getObjectId()]
+                );
                 $texturePurchase = new TexturePurchase($user, $texture);
-                $texturePurch = $this->getDoctrine()->getRepository(TexturePurchase::class)->findOneBy(['texture' => $item->getObjectId(), 'user' => $user->getId()]);
+                $texturePurch = $this->getDoctrine()->getRepository(TexturePurchase::class)->findOneBy(
+                    ['texture' => $item->getObjectId(), 'user' => $user->getId()]
+                );
                 if ($texturePurch == null) {
                     $texture->setPurchaseCount();
                     $manager->persist($texturePurchase);
                 }
-            }
-            else {
+            } else {
                 $model = $this->getDoctrine()->getRepository(Model::class)->findOneBy(["id" => $item->getObjectId()]);
                 $purchase = new Purchase($user, $model);
-                $modelPurchase = $this->getDoctrine()->getRepository(Purchase::class)->findOneBy(['model' => $item->getObjectId(), 'user' => $user->getId()]);
+                $modelPurchase = $this->getDoctrine()->getRepository(Purchase::class)->findOneBy(
+                    ['model' => $item->getObjectId(), 'user' => $user->getId()]
+                );
                 if ($modelPurchase == null) {
                     $model->setPurchaseCount();
                     $manager->persist($purchase);
@@ -154,7 +168,9 @@ class CartController extends AbstractController
 
         if ($type == "texture") {
             $texture = $em->getRepository(Texture::class)->find($id);
-            $cart->setName($texture->getName())->setObjectId($texture->getId())->setPrice($texture->getPrice())->setUser(
+            $cart->setName($texture->getName())->setObjectId($texture->getId())->setPrice(
+                $texture->getPrice()
+            )->setUser(
                 $user
             );
             $cart->setType("texture");
