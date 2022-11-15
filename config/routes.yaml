@@ -1,0 +1,4 @@
+api_login_check:
+    path: /api/login_check
+app_verify_email:
+    path: /api/verify
