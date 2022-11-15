@@ -10,6 +10,7 @@ use App\Repository\TextureRepository;
 use App\Service\TextureDTOService;
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Cloud\Storage\StorageClient;
+use Google\Cloud\Storage\StorageObject;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ZipArchive;
@@ -39,7 +41,19 @@ class TextureController extends AbstractController implements PostResponse
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
     }
-
+    private function getObjectFromBucket($model): StorageObject
+    {
+        $decodedJson = json_decode(
+            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
+            true
+        );
+        $storage = new StorageClient([
+                                         'keyFile' => $decodedJson
+                                     ]);
+        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
+        $fileName = $model->getId() . "." . $model->getExtensions();
+        return $bucket->object($fileName);
+    }
     /**
      * @Route("/", name="texture_index", methods={"GET"})
      */
@@ -194,7 +208,6 @@ class TextureController extends AbstractController implements PostResponse
             }
         }
 
-
         $decodedJson = json_decode(
             file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
             true
@@ -235,5 +248,54 @@ class TextureController extends AbstractController implements PostResponse
         } else {
             return $this->json(["code" => 400, "message" => "Could not load the texture!"], 400);
         }
+    }
+
+    /**
+     * @Route("/{id}", name="model_edit", methods={"PATCH"})
+     */
+    public function edit(Request $request, ?Texture $texture): JsonResponse
+    {
+        if (!$texture) {
+            return $this->json(["code" => 404, "message" => "Texture not found!"], 404);
+        }
+        $this->serializer->deserialize(
+            $request->getContent(),
+            Texture::class,
+            'json',
+            [
+                AbstractNormalizer::OBJECT_TO_POPULATE => $texture,
+                AbstractNormalizer::IGNORED_ATTRIBUTES => [
+                    'id',
+                    'rating',
+                    'owner',
+                    'approved',
+                    'createdOn',
+                    'updatedOn'
+                ]
+            ]
+        );
+        $this->entityManager->flush();
+        return $this->json(['code' => 200, 'message' => "Successfully updated the texture!"]);
+    }
+
+    /**
+     * @Route("/{id}", name="texture_delete", methods={"DELETE"})
+     */
+    public function delete(Request $request, ?Texture $texture = null): JsonResponse
+    {
+        if (!$texture) {
+            return $this->json(["code" => 404, "message" => "Texture not found!"], 404);
+        }
+        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
+        $decodedToken = $this->tokenManager->parse($token);
+        $ownerEmail = $decodedToken["username"];
+        if (!($texture->getOwner()->getEmail() === $ownerEmail)) {
+            return $this->json(["code" => 403, "message" => "Not allowed!"], 403);
+        }
+        $object = $this->getObjectFromBucket($texture);
+        $object->delete();
+        $this->entityManager->remove($texture);
+        $this->entityManager->flush();
+        return $this->json(['code' => 200, 'message' => "Successfully deleted the texture"]);
     }
 }

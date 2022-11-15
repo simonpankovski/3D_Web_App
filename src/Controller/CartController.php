@@ -113,7 +113,7 @@ class CartController extends AbstractController
         );
         Charge::create([
                                      'amount' => $sum * 100,
-                                     'currency' => 'usd',
+                                     'currency' => 'eur',
                                      'description' => 'Total Price',
                                      'source' => $tokenId,
                                  ]);
