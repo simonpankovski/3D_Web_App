@@ -18,19 +18,6 @@ class PostResponseSubscriber implements EventSubscriberInterface
 
     public function deleteFilesInFolder(string $commonPath): void
     {
-        if(!is_dir($commonPath)){
-            mkdir(getcwd() . "\\models");
-        }
-        $folderNames = array_slice(scandir($commonPath), 2);
-        if (count($folderNames) > 0) {
-            foreach ($folderNames as $folderName) {
-                $fileNames = array_slice(scandir($commonPath . "\\" . $folderName), 2);
-                foreach ($fileNames as $fileName) {
-                    unlink($commonPath . "\\" . $folderName . "\\" . $fileName);
-                }
-                rmdir($commonPath . "\\" . $folderName);
-            }
-        }
     }
     public function terminateEvent(TerminateEvent $event)
     {
@@ -42,7 +29,6 @@ class PostResponseSubscriber implements EventSubscriberInterface
         elseif (str_contains($event->getRequest()->getUri(), "/api/model/")) {
             $commonPath = getcwd() . "\\models\\";
             $this->deleteFilesInFolder($commonPath);
-
         }
     }
 

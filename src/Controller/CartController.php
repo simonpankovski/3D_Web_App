@@ -101,32 +101,18 @@ class CartController extends AbstractController
         CartRepository $cartRepository,
         JWTTokenManagerInterface $tokenManager
     ): JsonResponse {
-        $YOUR_DOMAIN = 'http://localhost:8080';
         $user = $this->getUserFromToken($request, $tokenManager);
         $cartItems = $cartRepository->findBy(['user' => $user->getId()]);
-        $sum = $cartRepository->createQueryBuilder("cart")->select("sum(cart.price)")->where(
-            "cart.user = :id"
-        )->setParameter("id", $user->getId())->getQuery()->getSingleScalarResult();
-        $tokenId = json_decode($request->getContent(), true)['token']['id'];
-        Stripe::setApiKey(
-            $_ENV['STRIPE_API_SK']
-        );
-        Charge::create([
-                                     'amount' => $sum * 100,
-                                     'currency' => 'eur',
-                                     'description' => 'Total Price',
-                                     'source' => $tokenId,
-                                 ]);
         $manager = $this->getDoctrine()->getManager();
         foreach ($cartItems as $item) {
             if ($item->getType() == "texture") {
                 $texture = $this->getDoctrine()->getRepository(Texture::class)->findOneBy(["id" => $item->getObjectId()]
                 );
                 $texturePurchase = new TexturePurchase($user, $texture);
-                $texturePurch = $this->getDoctrine()->getRepository(TexturePurchase::class)->findOneBy(
+                $isTexturePurchase = $this->getDoctrine()->getRepository(TexturePurchase::class)->findOneBy(
                     ['texture' => $item->getObjectId(), 'user' => $user->getId()]
                 );
-                if ($texturePurch == null) {
+                if ($isTexturePurchase == null) {
                     $texture->setPurchaseCount();
                     $manager->persist($texturePurchase);
                 }

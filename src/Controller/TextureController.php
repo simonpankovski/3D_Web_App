@@ -8,12 +8,11 @@ use App\Entity\TexturePurchase;
 use App\Entity\User;
 use App\Repository\TextureRepository;
 use App\Service\TextureDTOService;
+use App\Service\ZipService;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Cloud\Storage\StorageClient;
-use Google\Cloud\Storage\StorageObject;
+use FilesystemIterator;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +20,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use ZipArchive;
 
 /**
  * @Route("/api/texture")
@@ -41,19 +39,7 @@ class TextureController extends AbstractController implements PostResponse
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
     }
-    private function getObjectFromBucket($model): StorageObject
-    {
-        $decodedJson = json_decode(
-            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
-            true
-        );
-        $storage = new StorageClient([
-                                         'keyFile' => $decodedJson
-                                     ]);
-        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
-        $fileName = $model->getId() . "." . $model->getExtensions();
-        return $bucket->object($fileName);
-    }
+
     /**
      * @Route("/", name="texture_index", methods={"GET"})
      */
@@ -77,19 +63,15 @@ class TextureController extends AbstractController implements PostResponse
         $index = ((int)$page - 1) * $itemsPerPage;
         $results = $textureRepository->findAllAndPaginate($index, $itemsPerPage, $category, $searchTerm);
         $resultDTO = [];
-        $decodedJson = json_decode(
-            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
-            true
-        );
-        $storage = new StorageClient([
-                                         'keyFile' => $decodedJson
-                                     ]);
-        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
+        $texturesPath = getcwd() . "\\textures";
+
         foreach ($results as $res) {
-            $options = ['prefix' => "textures/thumbnails/" . $res->getId()];
             $thumbnailLinks = [];
-            foreach ($bucket->objects($options) as $object) {
-                $thumbnailLinks[] = $bucket->object($object->name())->signedUrl(new \DateTime('1 hour'));
+            $textureFolder = $texturesPath . "\\" . $res->getId() . "\\thumbnails";
+            $iterator = new FilesystemIterator($textureFolder);
+            foreach ($iterator as $textureFolder) {
+                $thumbnailLinks[] = $_ENV['URL'] . "/textures/" . $res->getId(
+                    ) . "/thumbnails/" . $textureFolder->getFilename();
             }
             $resultDTO[] = $textureDTOService->convertModelEntityToDTO($res, $thumbnailLinks);
         }
@@ -105,84 +87,7 @@ class TextureController extends AbstractController implements PostResponse
         JWTTokenManagerInterface $jwtManager,
         ValidatorInterface $validator
     ): JsonResponse {
-        $files = $request->files->get("format");
-        if ($files == null) {
-            return $this->json(['code' => 400, 'message' => 'No files were attached']);
-        }
-        $zip = new ZipArchive();
-        $requestBody = $request->request->all();
-        $file = "";
-        $textureRepo = $this->entityManager->getRepository(Texture::class);
-        if (sizeof($files) === 1) {
-            if (pathinfo($files[0]->getClientOriginalName())["extension"] != "zip") {
-                return $this->json(['code' => 400, 'message' => 'Invalid file format, zip required!']);
-            } else {
-                $file = $files[0];
-            }
-        } else {
-            $zipName = bin2hex(random_bytes(20));
-            if ($zip->open($zipName . '.zip', ZipArchive::CREATE) === true) {
-                foreach ($files as $file) {
-                    $zip->addFile($file->getPathName(), $file->getClientOriginalName());
-                }
-                $file = $zip->filename;
-                $zip->close();
-                $file = new File($file);
-            }
-        }
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        $decodedToken = $jwtManager->parse($token);
-
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $decodedToken["username"]]);
-        if (!$user->isVerified()) {
-            return $this->json(
-                ['code' => 400, 'message' => 'You must verify your email before being able to upload!']
-            );
-        }
-        $query = $textureRepo->createQueryBuilder('t')->select('count(t.id)')->where('t.owner = :owner')->andWhere(
-            't.approved = false'
-        )->setParameter('owner', $user->getId())->getQuery()->getSingleScalarResult();
-        if ($query > 0) {
-            unlink($file);
-            return $this->json(
-                ['code' => 400, 'message' => 'Maximum number of unapproved uploads reached, please try again later!']
-            );
-        }
-        $texture = new Texture();
-        $texture->setName($requestBody["name"])->setPrice(
-            $requestBody["price"]
-        )->setCategory($requestBody['category']);
-        $texture->setOwner($user);
-        $errors = $validator->validate($texture);
-        if (count($errors) > 0) {
-            return $this->json(['code' => 400, 'message' => "Texture is not valid!"], 400);
-        }
-        $this->entityManager->persist($texture);
-        $this->entityManager->flush();
-        $decodedJson = json_decode(
-            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
-            true
-        );
-        $storage = new StorageClient([
-                                         'keyFile' => $decodedJson
-                                     ]);
-        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
-        foreach ($request->files->get("thumbnails") as $key => $value) {
-            $extension = pathinfo($value->getClientOriginalName())["extension"];
-            if ($extension == "jpg" || $extension == "png") {
-                $bucket->upload(
-                    file_get_contents($value),
-                    ["name" => "textures/thumbnails/" . $texture->getId() . "_" . $key . "." . $extension]
-                );
-            }
-        }
-        $bucket->upload(
-            file_get_contents($file),
-            ["name" => "textures/" . $texture->getId() . ".zip"]
-        );
-        unlink($file);
-        //$textureDTOService->convertModelEntityToDTO($texture, [])
-        return $this->json(["code" => 200, "message" => "Success"]);
+        return $this->json(["code" => 400, "message" => "Uploading new assets has been disabled!"]);
     }
 
     /**
@@ -193,6 +98,7 @@ class TextureController extends AbstractController implements PostResponse
         if (!$texture) {
             return $this->json(['code' => 404, 'message' => 'Texture not found!'], 404);
         }
+        $textureId = $texture->getId();
         $purchase = null;
         if ($request->headers->has("authorization")) {
             $authHeader = preg_split("/ /", $request->headers->get("authorization"));
@@ -203,49 +109,30 @@ class TextureController extends AbstractController implements PostResponse
                     ['email' => $decodedToken['username']]
                 );
                 $purchase = $this->entityManager->getRepository(TexturePurchase::class)->findOneBy(
-                    ['user' => $user->getId(), 'texture' => $texture->getId()]
+                    ['user' => $user->getId(), 'texture' => $textureId]
                 );
             }
         }
 
-        $decodedJson = json_decode(
-            file_get_contents(realpath($_ENV['GOOGLE_APPLICATION_CREDENTIALS'])),
-            true
-        );
-
-        $downloadedZips = array_slice(scandir(getcwd() . "\\downloads\\"), 2);
-        foreach ($downloadedZips as $zip) {
-            unlink(getcwd() . "\\downloads\\" . $zip);
-        }
-
-        $storage = new StorageClient([
-                                         'keyFile' => $decodedJson
-                                     ]);
-        $storage->registerStreamWrapper();
-        $bucket = $storage->bucket($_ENV['BUCKET_NAME']);
-        $zipName = bin2hex(random_bytes(20));
-        $zipPath = getcwd() . "\\downloads\\" . $zipName . ".zip";
-        $bucket->object("textures/" . $texture->getId() . ".zip")->downloadToFile($zipPath);
-        $zip = new ZipArchive;
         if ($purchase != null && !$request->query->has("browse")) {
-            return $this->file($zipPath);
+            $zipPath = getcwd() . "\\textures\\" . $textureId;
+            if (!in_array("files.zip",scandir($zipPath))){
+                ZipService::zipFolder($zipPath, $textureId, "textures");
+            }
+            return $this->file($zipPath . "\\files.zip");
+
         }
-
-        if ($zip->open($zipPath) === true) {
-            $extractPath = getcwd() . "\\textures\\" . $zipName;
-            mkdir($extractPath);
-            $zip->extractTo($extractPath);
-            $zip->close();
-            unlink($zipPath);
-
+        $filesPath = getcwd() . "\\textures\\" . $textureId . "\\";
+        try {
+            $extractPath = $filesPath . "files";
             $fileNames = scandir($extractPath);
-            $files = array_map(function ($el) use ($extractPath) {
+            $files = array_map(function ($el) use ($extractPath){
                 $element = $extractPath . "\\" . $el;
                 return $this->file($element);
             }, array_slice($fileNames, 2));
             ini_set('memory_limit', '-1');
-            return $this->json(["code" => 200, "message" => $files], 200);
-        } else {
+            return $this->json(["code" => 200, "message" => $files]);
+        } catch (\ErrorException $error) {
             return $this->json(["code" => 400, "message" => "Could not load the texture!"], 400);
         }
     }
@@ -286,16 +173,6 @@ class TextureController extends AbstractController implements PostResponse
         if (!$texture) {
             return $this->json(["code" => 404, "message" => "Texture not found!"], 404);
         }
-        $token = preg_split("/ /", $request->headers->get("authorization"))[1];
-        $decodedToken = $this->tokenManager->parse($token);
-        $ownerEmail = $decodedToken["username"];
-        if (!($texture->getOwner()->getEmail() === $ownerEmail)) {
-            return $this->json(["code" => 403, "message" => "Not allowed!"], 403);
-        }
-        $object = $this->getObjectFromBucket($texture);
-        $object->delete();
-        $this->entityManager->remove($texture);
-        $this->entityManager->flush();
         return $this->json(['code' => 200, 'message' => "Successfully deleted the texture"]);
     }
 }
