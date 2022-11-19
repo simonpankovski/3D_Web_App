@@ -16,7 +16,7 @@ class Texture
 {
     use Timestamp;
 
-    const CHOICES = ['Free', 'Dirt', 'Metal', 'Wood', 'Concrete', 'Marble'];
+    const CHOICES = ['Free', 'Dirt', 'Metal', 'Wood', 'Concrete', 'Marble', 'Ceramic'];
 
     /**
      * @ORM\Id
