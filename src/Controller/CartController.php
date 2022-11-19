@@ -109,7 +109,7 @@ class CartController extends AbstractController
         )->setParameter("id", $user->getId())->getQuery()->getSingleScalarResult();
         $tokenId = json_decode($request->getContent(), true)['token']['id'];
         Stripe::setApiKey(
-            'sk_test_51K4oeOL44p3mSuwW0kRnYZso8dGgAy3ToQqpLn3SyOOZJwGZdrPm4akktxbZcblzqpdYxPEfc7CIvDSdqcY7pzPs00STJvoock'
+            $_ENV['STRIPE_API_SK']
         );
         Charge::create([
                                      'amount' => $sum * 100,
