@@ -63,10 +63,10 @@ class ModelController extends AbstractController
         $index = ((int)$page - 1) * $itemsPerPage;
         $results = $modelRepository->findAllAndPaginate($index, $itemsPerPage, $category, $searchTerm);
         $modelDTOArray = [];
-        $texturesPath = getcwd() . "\\models";
+        $texturesPath = getcwd() . "/models";
         foreach ($results as $res) {
             $thumbnailLinks = [];
-            $textureFolder = $texturesPath . "\\" . $res->getId() . "\\thumbnails";
+            $textureFolder = $texturesPath . "/" . $res->getId() . "/thumbnails";
             $iterator = new FilesystemIterator($textureFolder);
             foreach ($iterator as $textureFolder) {
                 $thumbnailLinks[] = $_ENV['URL'] . "/models/" . $res->getId(
@@ -113,24 +113,24 @@ class ModelController extends AbstractController
                 );
             }
         }
-        $commonPath = getcwd() . "\\models\\" . $model->getId() . "\\files";
+        $commonPath = getcwd() . "/models/" . $model->getId() . "/files";
         if ($purchase == null || $request->query->has("browse")) {
             $fileName = bin2hex(random_bytes(20));
 
             $fileNames = array_slice(scandir($commonPath), 2);
             $files = array_map(function ($el) use ($commonPath) {
-                $element = $commonPath . "\\" . $el;
+                $element = $commonPath . "/" . $el;
                 return $this->file($element);
             }, $fileNames);
             ini_set('memory_limit', '-1');
             return $this->json([$files, $fileName]);
         } else {
             $modelId = $model->getId();
-            $zipPath = getcwd() . "\\models\\" . $modelId;
+            $zipPath = getcwd() . "/models/" . $modelId;
             if (!in_array("files.zip",scandir($zipPath))){
                 ZipService::zipFolder($zipPath, $modelId, "models");
             }
-            return $this->file($zipPath . "\\files.zip");
+            return $this->file($zipPath . "/files.zip");
         }
     }
 

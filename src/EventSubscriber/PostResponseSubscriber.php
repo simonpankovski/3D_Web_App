@@ -22,12 +22,12 @@ class PostResponseSubscriber implements EventSubscriberInterface
     public function terminateEvent(TerminateEvent $event)
     {
         if (str_contains($event->getRequest()->getUri(), "/api/texture/")) {
-            $commonPath = getcwd() . "\\textures\\";
+            $commonPath = getcwd() . "/textures/";
             $this->deleteFilesInFolder($commonPath);
 
         }
         elseif (str_contains($event->getRequest()->getUri(), "/api/model/")) {
-            $commonPath = getcwd() . "\\models\\";
+            $commonPath = getcwd() . "/models/";
             $this->deleteFilesInFolder($commonPath);
         }
     }

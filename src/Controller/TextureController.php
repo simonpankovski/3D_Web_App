@@ -63,11 +63,11 @@ class TextureController extends AbstractController implements PostResponse
         $index = ((int)$page - 1) * $itemsPerPage;
         $results = $textureRepository->findAllAndPaginate($index, $itemsPerPage, $category, $searchTerm);
         $resultDTO = [];
-        $texturesPath = getcwd() . "\\textures";
+        $texturesPath = getcwd() . "/textures";
 
         foreach ($results as $res) {
             $thumbnailLinks = [];
-            $textureFolder = $texturesPath . "\\" . $res->getId() . "\\thumbnails";
+            $textureFolder = $texturesPath . "/" . $res->getId() . "/thumbnails";
             $iterator = new FilesystemIterator($textureFolder);
             foreach ($iterator as $textureFolder) {
                 $thumbnailLinks[] = $_ENV['URL'] . "/textures/" . $res->getId(
@@ -115,19 +115,19 @@ class TextureController extends AbstractController implements PostResponse
         }
 
         if ($purchase != null && !$request->query->has("browse")) {
-            $zipPath = getcwd() . "\\textures\\" . $textureId;
+            $zipPath = getcwd() . "/textures/" . $textureId;
             if (!in_array("files.zip",scandir($zipPath))){
                 ZipService::zipFolder($zipPath, $textureId, "textures");
             }
-            return $this->file($zipPath . "\\files.zip");
+            return $this->file($zipPath . "/files.zip");
 
         }
-        $filesPath = getcwd() . "\\textures\\" . $textureId . "\\";
+        $filesPath = getcwd() . "/textures/" . $textureId . "/";
         try {
             $extractPath = $filesPath . "files";
             $fileNames = scandir($extractPath);
             $files = array_map(function ($el) use ($extractPath){
-                $element = $extractPath . "\\" . $el;
+                $element = $extractPath . "/" . $el;
                 return $this->file($element);
             }, array_slice($fileNames, 2));
             ini_set('memory_limit', '-1');
