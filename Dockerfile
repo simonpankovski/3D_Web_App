@@ -11,4 +11,4 @@ ADD php.ini /etc/php7/php.ini
 RUN chown -R www-data:www-data .
 USER www-data
 
-CMD [ "php", "bin/console", "server:run" , "0.0.0.0:80"]
+CMD [ "php", "bin/console", "server:run" , "0.0.0.0:8080"]
