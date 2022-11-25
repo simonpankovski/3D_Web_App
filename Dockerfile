@@ -7,6 +7,7 @@ RUN apk add php postgresql-dev
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql
 RUN composer update
 ADD php.ini /etc/php7/php.ini
+RUN php bin/console lexik:jwt:generate-keypair
 
 ENV URL "http://localhost"
 
