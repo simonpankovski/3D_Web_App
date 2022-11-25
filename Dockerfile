@@ -8,6 +8,6 @@ RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql
 RUN composer update
 ADD php.ini /etc/php7/php.ini
 
-ENV URL "http://polybase-be.3d-model-shop.svc.cluster.local:8080"
+ENV URL "http://localhost"
 
 CMD [ "php", "bin/console", "server:run" , "0.0.0.0:8080"]
