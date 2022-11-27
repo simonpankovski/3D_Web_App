@@ -8,7 +8,7 @@ RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql
 RUN composer update
 RUN composer update --dev
 ADD php.ini /etc/php7/php.ini
-RUN php bin/console lexik:jwt:generate-keypair
+RUN php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
 USER www-data
 ENV URL "http://localhost"
