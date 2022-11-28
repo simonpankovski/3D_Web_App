@@ -4,7 +4,6 @@ USER www-data
 COPY --chown=www-data:www-data . /srv/app
 WORKDIR /srv/app
 RUN chmod +r /srv/app/.env
-RUN chown root:root .env
 
 USER root
 RUN apk add php postgresql-dev postgresql-client
