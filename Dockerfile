@@ -3,7 +3,7 @@ FROM composer:2.1.14
 COPY --chown=www-data:www-data . /srv/app
 WORKDIR /srv/app
 
-RUN apk add php postgresql-dev
+RUN apk add php postgresql-dev postgresql-client
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql
 RUN composer update
 RUN composer update --dev
