@@ -11,6 +11,5 @@ ADD php.ini /etc/php7/php.ini
 RUN php bin/console lexik:jwt:generate-keypair
 
 USER www-data
-ENV URL "http://localhost"
 
 CMD [ "php", "bin/console", "server:run" , "0.0.0.0:8080"]
